@@ -10,12 +10,6 @@ const LogIn = () => {
   const [errors, setErrors] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  const clearInputs = () =>
-    [
-      setEmail,
-      setPassword,
-    ].map(fn => fn(''));
-
   const isFormValid = () => email.length && password.length;
 
   const handleSubmit = async e => {
@@ -27,13 +21,11 @@ const LogIn = () => {
     setLoading(true);
     try {
       await signInWithEmail(email, password);
-
-      clearInputs();
     } catch (error) {
       console.error(error);
       setErrors([error]);
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   return (

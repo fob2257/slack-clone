@@ -1,25 +1,39 @@
 import React, { useEffect } from 'react';
 import ReactDOM from 'react-dom';
 import { BrowserRouter as Router, Route, Switch, withRouter } from 'react-router-dom';
+import { connect } from 'react-redux';
 
 import * as serviceWorker from './serviceWorker';
 
 import 'semantic-ui-css/semantic.min.css';
 
-import { getCurrentUser } from './firebase/firebase.util';
+import { fireAuth } from './firebase/firebase.util';
 
+import ReduxProvider from './redux';
+import { setCurrentUser } from './redux/actions/userActions';
+
+import Spinner from './components/common/Spinner';
 import HomePage from './components/App';
 import Register from './components/Register';
 import LogIn from './components/LogIn';
 
-const App = ({ history }) => {
+const App = ({ history, isLoading, setCurrentUser }) => {
   useEffect(() => {
-    getCurrentUser()
-      .then(user => (user) ? history.push('/') : null);
+    const unsubscribeFn = fireAuth.onAuthStateChanged(user => {
+      if (user) {
+        setCurrentUser(user);
+
+        history.push('/');
+      }
+    });
+
+    return () => {
+      unsubscribeFn();
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  return (
+  return isLoading ? <Spinner /> : (
     <React.Fragment>
       <Switch>
         <Route exact path='/' component={HomePage} />
@@ -30,13 +44,23 @@ const App = ({ history }) => {
   );
 };
 
-const AppHOC = withRouter(App);
+const mapStateToProps = ({ user }) => ({
+  isLoading: user.isLoading,
+});
+
+const mapDispatchToProps = dispatch => ({
+  setCurrentUser: user => dispatch(setCurrentUser(user)),
+});
+
+const AppHOC = withRouter(connect(mapStateToProps, mapDispatchToProps)(App));
 
 const Root = () => (
   <div className='root'>
-    <Router>
-      <AppHOC />
-    </Router>
+    <ReduxProvider>
+      <Router>
+        <AppHOC />
+      </Router>
+    </ReduxProvider>
   </div>
 );
 
