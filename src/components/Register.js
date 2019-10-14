@@ -34,14 +34,13 @@ const Register = () => {
 
     if (password !== passwordConfirmation) errors.push({ message: 'Passwords did not match' });
 
-    setErrors(errors);
-
     return !(errors.length > 0);
   };
 
   const handleSubmit = async e => {
     e.preventDefault();
 
+    setErrors(errors);
     if (!isFormValid()) return;
 
     setLoading(true);
@@ -61,7 +60,7 @@ const Register = () => {
     <Grid textAlign='center' verticalAlign='middle' className='register'>
       <Grid.Column style={{ maxWidth: 450 }}>
         <Header
-          as='h2'
+          as='h1'
           color='orange'
           textAlign='center'
           icon

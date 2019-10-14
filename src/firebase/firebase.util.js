@@ -12,6 +12,19 @@ export const fireStore = firebase.firestore();
 export const fireDatabase = firebase.database();
 export const fireStorage = firebase.storage();
 
+export const signInWithEmail = (email, password) => fireAuth.signInWithEmailAndPassword(email, password);
+
+export const signOut = () => fireAuth.signOut();
+
+export const getCurrentUser = () =>
+  new Promise((resolve, reject) => {
+    const unsubscribeFn = fireAuth.onAuthStateChanged(user => {
+      unsubscribeFn();
+
+      resolve(user);
+    }, reject);
+  });
+
 export const createUserDocument = async (user, additionalData = {}) => {
   if (!user) return;
 
