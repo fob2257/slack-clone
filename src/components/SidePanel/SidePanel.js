@@ -16,7 +16,7 @@ const SidePanel = ({ currentUser }) => (
     }}
   >
     <UserPanel currentUser={currentUser} />
-    <Channels />
+    <Channels currentUser={currentUser} />
   </Menu>
 );
 

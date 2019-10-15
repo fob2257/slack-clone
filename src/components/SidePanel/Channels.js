@@ -1,13 +1,46 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Menu, Icon, Modal, Form, Input, Button } from 'semantic-ui-react';
+import { connect } from 'react-redux';
 
-import { fireStore, fireDatabase } from '../../firebase/firebase.util';
+import { fireDatabase } from '../../firebase/firebase.util';
 
-const Channels = () => {
+import { setCurrentChannel } from '../../redux/actions/channelActions';
+
+const Channels = ({ currentUser, currentChannel, setCurrentChannel }) => {
   const [channels, setChannels] = useState([]);
   const [modal, setModal] = useState(false);
   const [channelName, setChannelName] = useState('');
   const [channelDetails, setChannelDetails] = useState('');
+
+  const channelsRef = fireDatabase.ref('channels');
+
+  const addListener = () => {
+    let timeoutId = null;
+    const loadedChannels = [];
+
+    channelsRef.on('child_added', snapShot => {
+      const arrLength = loadedChannels.push(snapShot.val());
+      // console.log(loadedChannels);
+      if (timeoutId !== null) clearTimeout(timeoutId);
+
+      timeoutId = setTimeout(() => {
+        setChannels(loadedChannels);
+        clearTimeout(timeoutId);
+      }, 1000);
+
+      if (arrLength === 1) setCurrentChannel(loadedChannels[arrLength - 1]);
+    });
+  };
+
+  useEffect(() => {
+    addListener();
+
+    return () => {
+      // remove listeners
+      channelsRef.off();
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const closeModal = () => {
     setChannelName('');
@@ -18,9 +51,25 @@ const Channels = () => {
   const isFormValid = () => channelName.length && channelDetails.length;
 
   const addChannel = async () => {
-    const channelsRef = fireDatabase.ref('channels');
+    try {
+      const key = channelsRef.push().key;
 
-    const key = channelsRef.push().key;
+      const newChannel = {
+        id: key,
+        name: channelName,
+        details: channelDetails,
+        createdBy: {
+          name: currentUser.displayName,
+          avatar: currentUser.photoUrl,
+        },
+      };
+
+      await channelsRef.child(key).update(newChannel);
+
+      closeModal();
+    } catch (error) {
+      console.error(error);
+    }
   };
 
   const handleSubmit = e => {
@@ -29,7 +78,7 @@ const Channels = () => {
     if (!isFormValid()) return;
 
     addChannel();
-  }
+  };
 
   return (
     <React.Fragment>
@@ -45,6 +94,19 @@ const Channels = () => {
             onClick={() => setModal(true)}
           />
         </Menu.Item>
+        {
+          channels.map(channel => (
+            <Menu.Item
+              key={channel.id}
+              name={channel.name}
+              style={{ opacity: 0.7 }}
+              onClick={() => setCurrentChannel(channel)}
+              active={currentChannel && currentChannel.id === channel.id}
+            >
+              # {channel.name}
+            </Menu.Item>
+          ))
+        }
       </Menu.Menu>
 
       <Modal
@@ -96,4 +158,12 @@ const Channels = () => {
   );
 };
 
-export default Channels;
+const mapStateToProps = ({ channel }) => ({
+  currentChannel: channel.currentChannel,
+});
+
+const mapDispatchToProps = dispatch => ({
+  setCurrentChannel: channel => dispatch(setCurrentChannel(channel)),
+});
+
+export default connect(mapStateToProps, mapDispatchToProps)(Channels);
