@@ -7,24 +7,29 @@ import * as serviceWorker from './serviceWorker';
 
 import 'semantic-ui-css/semantic.min.css';
 
-import { fireAuth } from './firebase/firebase.util';
+import { fireAuth, createUserDocument } from './firebase/firebase.util';
 
 import ReduxProvider from './redux';
 import { setCurrentUser } from './redux/actions/userActions';
 
 import Spinner from './components/common/Spinner';
+import ProtectedRoute from './components/common/ProtectedRoute';
+
 import HomePage from './components/App';
-import Register from './components/Register';
-import LogIn from './components/LogIn';
+import Register from './components/Auth/Register';
+import LogIn from './components/Auth/LogIn';
 
 const App = ({ history, isLoading, setCurrentUser }) => {
   useEffect(() => {
-    const unsubscribeFn = fireAuth.onAuthStateChanged(user => {
+    const unsubscribeFn = fireAuth.onAuthStateChanged(async user => {
       if (user) {
-        setCurrentUser(user);
+        const userRef = await createUserDocument(user);
+        const userSnap = await userRef.get();
 
-        history.push('/');
+        setCurrentUser(userSnap.data());
+        return history.push('/');
       }
+      setCurrentUser(null);
     });
 
     return () => {
@@ -36,7 +41,7 @@ const App = ({ history, isLoading, setCurrentUser }) => {
   return isLoading ? <Spinner /> : (
     <React.Fragment>
       <Switch>
-        <Route exact path='/' component={HomePage} />
+        <ProtectedRoute exact path='/' component={HomePage} />
         <Route path='/register' component={Register} />
         <Route path='/logIn' component={LogIn} />
       </Switch>

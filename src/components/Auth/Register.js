@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom';
 
 import './Register.style.css';
 
-import { fireAuth, createUserDocument } from '../firebase/firebase.util';
+import { fireAuth, createUserDocument } from '../../firebase/firebase.util';
 
 const Register = () => {
   const [username, setUsername] = useState('');

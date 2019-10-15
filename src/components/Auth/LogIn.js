@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Grid, Form, Segment, Button, Header, Message, Icon } from 'semantic-ui-react';
 import { Link } from 'react-router-dom';
 
-import { signInWithEmail } from '../firebase/firebase.util';
+import { signInWithEmail } from '../../firebase/firebase.util';
 
 const LogIn = () => {
   const [email, setEmail] = useState('');
