@@ -16,25 +16,25 @@ const Messages = ({ currentUser, currentChannel }) => {
   const messagesRef = fireDatabase.ref('messages');
 
   const addListener = async () => {
-    const loadedMessages = [];
+    if (currentChannel === null) return;
 
-    if (currentChannel !== null) {
-      const snapShot = await messagesRef.child(currentChannel.id).once('value');
+    const msgRef = messagesRef.child(currentChannel.id);
 
-      if (snapShot.val() === null) setMessages(loadedMessages);
+    const snapshot = await msgRef.once('value');
+    const snapvalue = snapshot.val();
+    const keys = snapvalue !== null ? Object.keys(snapvalue) : [];
+    const values = snapvalue !== null ? Object.values(snapvalue) : [];
 
-      let timeoutId = null;
-      messagesRef.child(currentChannel.id).on('child_added', snapShot => {
-        loadedMessages.push(snapShot.val());
+    setMessages(values);
 
-        if (timeoutId !== null) clearTimeout(timeoutId);
+    msgRef.on('child_added', snapshot => {
+      const val = snapshot.val();
 
-        timeoutId = setTimeout(() => {
-          setMessages(loadedMessages);
-          clearTimeout(timeoutId);
-        }, 500);
-      });
-    }
+      if (keys.some(k => k === val.id)) return;
+
+      values.push(val);
+      setMessages([...values]);
+    });
   };
 
   useEffect(() => {

@@ -6,8 +6,11 @@ import './MessageForm.style.css';
 
 import firebase from '../../firebase/firebase.util';
 
+import FileModal from './FileModal';
+
 const MessageForm = ({ messagesRef, currentUser, currentChannel }) => {
   const [message, setMessage] = useState('');
+  const [modal, setModal] = useState(false);
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState([]);
 
@@ -16,11 +19,17 @@ const MessageForm = ({ messagesRef, currentUser, currentChannel }) => {
 
     setLoading(true);
     try {
-      await messagesRef.child(currentChannel.id).push().set({
+      const msgRef = messagesRef.child(currentChannel.id);
+
+      const key = msgRef.push().key;
+      const newMessage = {
+        id: key,
         content: message,
-        timestamp: firebase.database.ServerValue.TIMESTAMP,
         user: currentUser,
-      });
+        timestamp: firebase.database.ServerValue.TIMESTAMP,
+      };
+
+      await msgRef.child(key).update(newMessage);
 
       setMessage('');
     } catch (error) {
@@ -28,6 +37,10 @@ const MessageForm = ({ messagesRef, currentUser, currentChannel }) => {
       setErrors([error]);
     }
     setLoading(false);
+  };
+
+  const uploadFile = (file, metadata) => {
+    console.log(file, metadata);
   };
 
   return (
@@ -58,6 +71,13 @@ const MessageForm = ({ messagesRef, currentUser, currentChannel }) => {
           content='Upload Media'
           labelPosition='right'
           icon='cloud upload'
+          onClick={() => setModal(true)}
+        />
+
+        <FileModal
+          modal={modal}
+          closeModal={() => setModal(false)}
+          uploadFile={uploadFile}
         />
       </Button.Group>
     </Segment>

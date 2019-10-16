@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Menu, Icon, Modal, Form, Input, Button } from 'semantic-ui-react';
 import { connect } from 'react-redux';
 
-import { fireDatabase } from '../../firebase/firebase.util';
+import firebase, { fireDatabase } from '../../firebase/firebase.util';
 
 import { setCurrentChannel } from '../../redux/actions/channelActions';
 
@@ -14,21 +14,22 @@ const Channels = ({ currentUser, currentChannel, setCurrentChannel }) => {
 
   const channelsRef = fireDatabase.ref('channels');
 
-  const addListener = () => {
-    let timeoutId = null;
-    const loadedChannels = [];
+  const addListener = async () => {
+    const snapshot = await channelsRef.once('value');
+    const snapvalue = snapshot.val();
+    const keys = snapvalue !== null ? Object.keys(snapvalue) : [];
+    const values = snapvalue !== null ? Object.values(snapvalue) : [];
 
-    channelsRef.on('child_added', snapShot => {
-      const arrLength = loadedChannels.push(snapShot.val());
-      // console.log(loadedChannels);
-      if (timeoutId !== null) clearTimeout(timeoutId);
+    setChannels(values);
+    if (values.length) setCurrentChannel(values[0]);
 
-      timeoutId = setTimeout(() => {
-        setChannels(loadedChannels);
-        clearTimeout(timeoutId);
-      }, 1000);
+    channelsRef.on('child_added', snapshot => {
+      const val = snapshot.val();
 
-      if (arrLength === 1) setCurrentChannel(loadedChannels[arrLength - 1]);
+      if (keys.some(k => k === val.id)) return;
+
+      values.push(val);
+      setChannels([...values]);
     });
   };
 
@@ -53,7 +54,6 @@ const Channels = ({ currentUser, currentChannel, setCurrentChannel }) => {
   const addChannel = async () => {
     try {
       const key = channelsRef.push().key;
-
       const newChannel = {
         id: key,
         name: channelName,
@@ -62,6 +62,7 @@ const Channels = ({ currentUser, currentChannel, setCurrentChannel }) => {
           name: currentUser.displayName,
           avatar: currentUser.photoUrl,
         },
+        timestamp: firebase.database.ServerValue.TIMESTAMP,
       };
 
       await channelsRef.child(key).update(newChannel);
