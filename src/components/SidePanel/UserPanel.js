@@ -1,5 +1,6 @@
 import React from 'react';
 import { Grid, Header, Icon, Dropdown, Image } from 'semantic-ui-react';
+import { connect } from 'react-redux';
 
 import { signOut } from '../../firebase/firebase.util';
 
@@ -48,4 +49,8 @@ const UserPanel = ({ currentUser }) => (
   </Grid>
 );
 
-export default UserPanel;
+const mapStateToProps = ({ user }) => ({
+  currentUser: user.currentUser,
+});
+
+export default connect(mapStateToProps)(UserPanel);

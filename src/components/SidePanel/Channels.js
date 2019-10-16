@@ -158,7 +158,8 @@ const Channels = ({ currentUser, currentChannel, setCurrentChannel }) => {
   );
 };
 
-const mapStateToProps = ({ channel }) => ({
+const mapStateToProps = ({ user, channel }) => ({
+  currentUser: user.currentUser,
   currentChannel: channel.currentChannel,
 });
 
