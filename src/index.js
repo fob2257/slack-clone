@@ -25,8 +25,9 @@ const App = ({ history, isLoading, setCurrentUser }) => {
       if (user) {
         const userRef = await createUserDocument(user);
         const userSnap = await userRef.get();
+        const userData = userSnap.data();
 
-        setCurrentUser(userSnap.data());
+        setCurrentUser(userData);
         return history.push('/');
       }
       setCurrentUser(null);

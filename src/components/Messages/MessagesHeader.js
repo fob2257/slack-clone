@@ -1,7 +1,7 @@
 import React from 'react';
 import { Header, Segment, Input, Icon } from 'semantic-ui-react';
 
-const MessagesHeader = () => (
+const MessagesHeader = ({ channelName, channelUsers }) => (
   <Segment clearing>
     <Header
       as='h2'
@@ -10,11 +10,11 @@ const MessagesHeader = () => (
       style={{ marginBottom: 0 }}
     >
       <span>
-        Channel
+        {channelName}
         <Icon name='star outline' color='black' />
       </span>
       <Header.Subheader>
-        2 Users
+        {channelUsers} {`User${channelUsers !== 1 ? 's' : ''}`}
       </Header.Subheader>
     </Header>
     <Header

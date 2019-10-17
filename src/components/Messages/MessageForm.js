@@ -129,6 +129,8 @@ const MessageForm = ({ messagesRef, currentUser, currentChannel, setProgressBarV
           labelPosition='right'
           icon='cloud upload'
           onClick={() => setModal(true)}
+          loading={uploading}
+          disabled={uploading}
         />
       </Button.Group>
 

@@ -13,6 +13,7 @@ import Message from './Message';
 const Messages = ({ currentUser, currentChannel }) => {
   const [messages, setMessages] = useState([]);
   const [progressBarVisible, setProgressBarVisible] = useState(false);
+  const [uniqueUsers, setUniqueUsers] = useState([]);
 
   const messagesRef = fireDatabase.ref('messages');
 
@@ -39,6 +40,12 @@ const Messages = ({ currentUser, currentChannel }) => {
   };
 
   useEffect(() => {
+    const emails = [...new Set(messages.map(m => m.user.email))];
+
+    setUniqueUsers(emails);
+  }, [messages]);
+
+  useEffect(() => {
     addListener();
 
     return () => {
@@ -49,7 +56,10 @@ const Messages = ({ currentUser, currentChannel }) => {
 
   return currentChannel ? (
     <React.Fragment>
-      <MessagesHeader />
+      <MessagesHeader
+        channelName={currentChannel.name}
+        channelUsers={uniqueUsers.length}
+      />
 
       <Segment>
         <Comment.Group className={progressBarVisible ? 'messages__progress' : 'messages'}>
