@@ -1,5 +1,5 @@
 import React from 'react';
-import { Comment } from 'semantic-ui-react';
+import { Comment, Image } from 'semantic-ui-react';
 import moment from 'moment';
 
 import './Message.style.css';
@@ -10,7 +10,13 @@ const Message = ({ message, currentUser }) => (
     <Comment.Content className={message.user.id === currentUser.id && 'message__self'}>
       <Comment.Author as='a'>{message.user.displayName}</Comment.Author>
       <Comment.Metadata>{moment(message.timestamp).fromNow()}</Comment.Metadata>
-      <Comment.Text>{message.content}</Comment.Text>
+      {
+        (message.hasOwnProperty('image') ?
+          <Image src={message.image} className='message__image' />
+          : <Comment.Text>{message.content}</Comment.Text>
+        )
+      }
+
     </Comment.Content>
   </Comment>
 );

@@ -1,18 +1,67 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Segment, Button, Input } from 'semantic-ui-react';
 import { connect } from 'react-redux';
+import uuidv4 from 'uuid/v4';
 
 import './MessageForm.style.css';
 
-import firebase from '../../firebase/firebase.util';
+import firebase, { fireStorage } from '../../firebase/firebase.util';
 
 import FileModal from './FileModal';
+import ProgressBar from './ProgressBar';
 
-const MessageForm = ({ messagesRef, currentUser, currentChannel }) => {
+const MessageForm = ({ messagesRef, currentUser, currentChannel, setProgressBarVisible }) => {
   const [message, setMessage] = useState('');
   const [modal, setModal] = useState(false);
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState([]);
+  const [uploading, setUploading] = useState(false);
+  const [uploadTask, setUploadTask] = useState(null);
+  const [percentage, setPercentage] = useState(0);
+
+  const storageRef = fireStorage.ref();
+
+  useEffect(() => {
+    if (uploadTask) {
+      uploadTask.on('state_changed',
+        snapshot => {
+          const percentage = Math.round((snapshot.bytesTransferred / snapshot.totalBytes) * 100);
+
+          setPercentage(percentage);
+        },
+        error => {
+          console.error(error);
+          setErrors([error]);
+          setUploading(false);
+          setUploadTask(null);
+        },
+        async () => {
+          try {
+            const url = await uploadTask.snapshot.ref.getDownloadURL();
+            const msgRef = messagesRef.child(currentChannel.id);
+
+            const key = msgRef.push().key;
+            const newMessage = {
+              id: key,
+              image: url,
+              user: currentUser,
+              timestamp: firebase.database.ServerValue.TIMESTAMP,
+            };
+
+            await msgRef.child(key).update(newMessage);
+
+            setUploading(false);
+            setUploadTask(null);
+          } catch (error) {
+            console.error(error);
+            setErrors([error]);
+            setUploading(false);
+            setUploadTask(null);
+          }
+        });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [uploadTask]);
 
   const sendMessage = async () => {
     if (!(!!message.length)) return setErrors([{ message: 'Add a message' }]);
@@ -40,7 +89,15 @@ const MessageForm = ({ messagesRef, currentUser, currentChannel }) => {
   };
 
   const uploadFile = (file, metadata) => {
-    console.log(file, metadata);
+    const [ext] = file.name.split('.').reverse();
+    const filePath = `chat/public/${uuidv4()}.${ext}`;
+
+    const task = storageRef.child(filePath).put(file, metadata);
+
+    setUploading(true);
+    setUploadTask(task);
+
+    setProgressBarVisible(true);
   };
 
   return (
@@ -73,13 +130,17 @@ const MessageForm = ({ messagesRef, currentUser, currentChannel }) => {
           icon='cloud upload'
           onClick={() => setModal(true)}
         />
-
-        <FileModal
-          modal={modal}
-          closeModal={() => setModal(false)}
-          uploadFile={uploadFile}
-        />
       </Button.Group>
+
+      <FileModal
+        modal={modal}
+        closeModal={() => setModal(false)}
+        uploadFile={uploadFile}
+      />
+
+      {
+        uploading && <ProgressBar percentage={percentage} />
+      }
     </Segment>
   );
 };

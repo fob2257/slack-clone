@@ -14,10 +14,12 @@ const FileModal = ({ modal, closeModal, uploadFile }) => {
   const sendFile = () => {
     if (file === null) return;
 
-    const authorized = ['image/jpeg', 'image/png'];
-    if (!authorized.includes(mime.lookup(file.name))) return;
+    const contentType = mime.lookup(file.name);
+    const authorizedTypes = ['image/jpeg', 'image/png'];
 
-    const metadata = { contentType: mime.lookup(file.name) };
+    if (!authorizedTypes.includes(contentType)) return;
+
+    const metadata = { contentType };
 
     uploadFile(file, metadata);
 

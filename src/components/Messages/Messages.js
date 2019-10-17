@@ -12,6 +12,7 @@ import Message from './Message';
 
 const Messages = ({ currentUser, currentChannel }) => {
   const [messages, setMessages] = useState([]);
+  const [progressBarVisible, setProgressBarVisible] = useState(false);
 
   const messagesRef = fireDatabase.ref('messages');
 
@@ -46,12 +47,12 @@ const Messages = ({ currentUser, currentChannel }) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentChannel]);
 
-  return (
+  return currentChannel ? (
     <React.Fragment>
       <MessagesHeader />
 
       <Segment>
-        <Comment.Group className='messages'>
+        <Comment.Group className={progressBarVisible ? 'messages__progress' : 'messages'}>
           {
             messages.map((message, i) =>
               <Message
@@ -64,9 +65,13 @@ const Messages = ({ currentUser, currentChannel }) => {
         </Comment.Group>
       </Segment>
 
-      <MessageForm messagesRef={messagesRef} />
+      <MessageForm
+        messagesRef={messagesRef}
+        setProgressBarVisible={boolVal => setProgressBarVisible(boolVal)}
+      />
     </React.Fragment>
-  );
+  )
+    : null;
 };
 
 const mapStateToProps = ({ user, channel }) => ({

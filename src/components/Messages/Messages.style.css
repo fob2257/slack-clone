@@ -2,3 +2,8 @@
   height: 440px;
   overflow-y: scroll;
 }
+
+.messages__progress {
+  height: 58vh;
+  overflow-y: scroll;
+}
