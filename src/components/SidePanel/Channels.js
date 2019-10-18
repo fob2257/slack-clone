@@ -4,7 +4,7 @@ import { connect } from 'react-redux';
 
 import firebase, { fireDatabase } from '../../firebase/firebase.util';
 
-import { setCurrentChannel } from '../../redux/actions/channelActions';
+import { setCurrentChannel, setPrivateChannel } from '../../redux/actions/channelActions';
 
 const Channels = ({ currentUser, currentChannel, setCurrentChannel }) => {
   const [channels, setChannels] = useState([]);
@@ -166,7 +166,10 @@ const mapStateToProps = ({ user, channel }) => ({
 });
 
 const mapDispatchToProps = dispatch => ({
-  setCurrentChannel: channel => dispatch(setCurrentChannel(channel)),
+  setCurrentChannel: channel => {
+    dispatch(setCurrentChannel(channel));
+    dispatch(setPrivateChannel(false));
+  },
 });
 
 export default connect(mapStateToProps, mapDispatchToProps)(Channels);

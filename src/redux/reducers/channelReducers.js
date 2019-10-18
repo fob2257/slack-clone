@@ -3,6 +3,7 @@ import constants from '../constants';
 const initialState = {
   currentChannel: null,
   collection: [],
+  privateChannel: false,
 };
 
 export default (state = initialState, { type, payload }) => {
@@ -18,6 +19,13 @@ export default (state = initialState, { type, payload }) => {
       return {
         ...state,
         currentChannel: payload,
+      };
+    }
+
+    case constants.SET_PRIVATE_CHANNEL: {
+      return {
+        ...state,
+        privateChannel: payload,
       };
     }
 

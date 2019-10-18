@@ -4,7 +4,9 @@ import { connect } from 'react-redux';
 
 import { fireDatabase, fireStore } from '../../firebase/firebase.util';
 
-const DirectMessages = ({ currentUser }) => {
+import { setCurrentChannel, setPrivateChannel } from '../../redux/actions/channelActions';
+
+const DirectMessages = ({ currentUser, currentChannel, setCurrentChannel }) => {
   const [users, setUsers] = useState([]);
   const [presenceChild, setPresenceChild] = useState(null);
 
@@ -79,6 +81,16 @@ const DirectMessages = ({ currentUser }) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  const getChannelId = user =>
+    user.uid < currentUser.uid ? `${user.uid}__${currentUser.uid}`
+      : `${currentUser.uid}__${user.uid}`;
+
+  const changeChannel = user =>
+    setCurrentChannel({
+      id: getChannelId(user),
+      name: user.displayName,
+    });
+
   return (
     <Menu.Menu className='menu'>
       <Menu.Item>
@@ -92,8 +104,9 @@ const DirectMessages = ({ currentUser }) => {
         users.map(user => (
           <Menu.Item
             key={user.uid}
-            onClick={() => console.log(user)}
+            onClick={() => changeChannel(user)}
             style={{ opacity: 0.7, fontStyle: 'italic' }}
+            active={currentChannel && currentChannel.id === getChannelId(user)}
           >
             <Icon
               name='circle'
@@ -107,6 +120,16 @@ const DirectMessages = ({ currentUser }) => {
   );
 };
 
-const mapStateToProps = ({ user: { currentUser } }) => ({ currentUser });
+const mapStateToProps = ({
+  user: { currentUser },
+  channel: { currentChannel },
+}) => ({ currentUser, currentChannel });
 
-export default connect(mapStateToProps)(DirectMessages);
+const mapDispatchToProps = dispatch => ({
+  setCurrentChannel: channel => {
+    dispatch(setCurrentChannel(channel));
+    dispatch(setPrivateChannel(true));
+  },
+});
+
+export default connect(mapStateToProps, mapDispatchToProps)(DirectMessages);

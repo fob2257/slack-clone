@@ -7,6 +7,7 @@ const MessagesHeader = ({
   searchTerm,
   handleSearchTerm,
   searchLoading,
+  privateChannel,
 }) => (
     <Segment clearing>
       <Header
@@ -17,11 +18,17 @@ const MessagesHeader = ({
       >
         <span>
           {channelName}
-          <Icon name='star outline' color='black' />
+          {
+            !privateChannel && <Icon name='star outline' color='black' />
+          }
         </span>
-        <Header.Subheader>
-          {channelUsers} {`User${channelUsers !== 1 ? 's' : ''}`}
-        </Header.Subheader>
+        {
+          !privateChannel && (
+            <Header.Subheader>
+              {channelUsers} {`User${channelUsers !== 1 ? 's' : ''}`}
+            </Header.Subheader>
+          )
+        }
       </Header>
       <Header
         floated='right'

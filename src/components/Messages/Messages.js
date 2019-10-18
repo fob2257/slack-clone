@@ -8,7 +8,7 @@ import MessagesHeader from './MessagesHeader';
 import MessageForm from './MessageForm';
 import Message from './Message';
 
-const Messages = ({ currentUser, currentChannel }) => {
+const Messages = ({ currentUser, currentChannel, privateChannel }) => {
   const [messages, setMessages] = useState([]);
   const [progressBarVisible, setProgressBarVisible] = useState(false);
   const [uniqueUsers, setUniqueUsers] = useState([]);
@@ -17,6 +17,12 @@ const Messages = ({ currentUser, currentChannel }) => {
   const [searchLoading, setSearchLoading] = useState(false);
 
   const messagesRef = fireDatabase.ref('messages');
+
+  useEffect(() => {
+    const emails = [...new Set(messages.map(m => m.user.email))];
+
+    setUniqueUsers(emails);
+  }, [messages]);
 
   const addListener = async () => {
     if (currentChannel === null) return;
@@ -39,12 +45,6 @@ const Messages = ({ currentUser, currentChannel }) => {
       setMessages([...values]);
     });
   };
-
-  useEffect(() => {
-    const emails = [...new Set(messages.map(m => m.user.email))];
-
-    setUniqueUsers(emails);
-  }, [messages]);
 
   useEffect(() => {
     addListener();
@@ -85,11 +85,12 @@ const Messages = ({ currentUser, currentChannel }) => {
   return currentChannel ? (
     <React.Fragment>
       <MessagesHeader
-        channelName={currentChannel.name}
+        channelName={`${privateChannel ? '@' : '#'}${currentChannel.name}`}
         channelUsers={uniqueUsers.length}
         searchTerm={searchTerm}
         handleSearchTerm={val => setSearchTerm(val)}
         searchLoading={searchLoading}
+        privateChannel={privateChannel}
       />
 
       <Segment>
@@ -113,6 +114,7 @@ const Messages = ({ currentUser, currentChannel }) => {
 const mapStateToProps = ({ user, channel }) => ({
   currentUser: user.currentUser,
   currentChannel: channel.currentChannel,
+  privateChannel: channel.privateChannel,
 });
 
 export default connect(mapStateToProps)(Messages);

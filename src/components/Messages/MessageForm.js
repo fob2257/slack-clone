@@ -8,7 +8,13 @@ import firebase, { fireStorage } from '../../firebase/firebase.util';
 import FileModal from './FileModal';
 import ProgressBar from './ProgressBar';
 
-const MessageForm = ({ messagesRef, currentUser, currentChannel, setProgressBarVisible }) => {
+const MessageForm = ({
+  messagesRef,
+  setProgressBarVisible,
+  currentUser,
+  currentChannel,
+  privateChannel,
+}) => {
   const [message, setMessage] = useState('');
   const [modal, setModal] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -18,6 +24,7 @@ const MessageForm = ({ messagesRef, currentUser, currentChannel, setProgressBarV
   const [percentage, setPercentage] = useState(0);
 
   const storageRef = fireStorage.ref();
+  const msgRef = messagesRef.child(currentChannel.id);
 
   useEffect(() => {
     if (uploadTask) {
@@ -36,7 +43,6 @@ const MessageForm = ({ messagesRef, currentUser, currentChannel, setProgressBarV
         async () => {
           try {
             const url = await uploadTask.snapshot.ref.getDownloadURL();
-            const msgRef = messagesRef.child(currentChannel.id);
 
             const key = msgRef.push().key;
             const newMessage = {
@@ -66,8 +72,6 @@ const MessageForm = ({ messagesRef, currentUser, currentChannel, setProgressBarV
 
     setLoading(true);
     try {
-      const msgRef = messagesRef.child(currentChannel.id);
-
       const key = msgRef.push().key;
       const newMessage = {
         id: key,
@@ -86,9 +90,12 @@ const MessageForm = ({ messagesRef, currentUser, currentChannel, setProgressBarV
     setLoading(false);
   };
 
+  const getPath = () => privateChannel ? `chat/private-${currentChannel.id}`
+    : 'chat/public';
+
   const uploadFile = (file, metadata) => {
     const [ext] = file.name.split('.').reverse();
-    const filePath = `chat/public/${uuidv4()}.${ext}`;
+    const filePath = `${getPath()}${uuidv4()}.${ext}`;
 
     const task = storageRef.child(filePath).put(file, metadata);
 
@@ -148,6 +155,7 @@ const MessageForm = ({ messagesRef, currentUser, currentChannel, setProgressBarV
 const mapStateToProps = ({ user, channel }) => ({
   currentUser: user.currentUser,
   currentChannel: channel.currentChannel,
+  privateChannel: channel.privateChannel,
 });
 
 export default connect(mapStateToProps)(MessageForm);
