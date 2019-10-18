@@ -14,6 +14,9 @@ const Messages = ({ currentUser, currentChannel }) => {
   const [messages, setMessages] = useState([]);
   const [progressBarVisible, setProgressBarVisible] = useState(false);
   const [uniqueUsers, setUniqueUsers] = useState([]);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filteredMessages, setFilteredMessages] = useState([]);
+  const [searchLoading, setSearchLoading] = useState(false);
 
   const messagesRef = fireDatabase.ref('messages');
 
@@ -54,23 +57,48 @@ const Messages = ({ currentUser, currentChannel }) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentChannel]);
 
+  useEffect(() => {
+    setSearchLoading(true);
+    if (searchTerm.length === 0 && filteredMessages.length) setFilteredMessages([]);
+
+    const regex = new RegExp(searchTerm, 'gi');
+    const msgs = messages.filter(m => (m.hasOwnProperty('content') && m.content.match(regex))
+      || m.user.displayName.match(regex));
+
+    setFilteredMessages(msgs);
+
+    const timeoutId = setTimeout(() => {
+      setSearchLoading(false);
+
+      clearTimeout(timeoutId);
+    }, 1000);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchTerm]);
+
+  const displayMessages = (msgs = []) =>
+    msgs.map((message, i) =>
+      <Message
+        key={i}
+        message={message}
+        currentUser={currentUser}
+      />
+    );
+
   return currentChannel ? (
     <React.Fragment>
       <MessagesHeader
         channelName={currentChannel.name}
         channelUsers={uniqueUsers.length}
+        searchTerm={searchTerm}
+        handleSearchTerm={val => setSearchTerm(val)}
+        searchLoading={searchLoading}
       />
 
       <Segment>
         <Comment.Group className={progressBarVisible ? 'messages__progress' : 'messages'}>
           {
-            messages.map((message, i) =>
-              <Message
-                key={i}
-                message={message}
-                currentUser={currentUser}
-              />
-            )
+            searchTerm.length ? displayMessages(filteredMessages)
+              : displayMessages(messages)
           }
         </Comment.Group>
       </Segment>
