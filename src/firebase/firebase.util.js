@@ -44,6 +44,7 @@ export const createUserDocument = async (user, additionalData = {}) => {
         displayName,
         email,
         createdAt,
+        uid: user.uid,
         photoUrl: (photoUrl) ? photoUrl
           : `http://gravatar.com/avatar/${md5(user.email)}?d=identicon`,
         ...additionalData,
