@@ -7,6 +7,8 @@ import * as serviceWorker from './serviceWorker';
 
 import 'semantic-ui-css/semantic.min.css';
 
+import './index.style.css';
+
 import { fireAuth, createUserDocument } from './firebase/firebase.util';
 
 import ReduxProvider from './redux';

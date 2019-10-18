@@ -2,8 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { Segment, Comment } from 'semantic-ui-react';
 import { connect } from 'react-redux';
 
-import './Messages.style.css';
-
 import { fireDatabase } from '../../firebase/firebase.util';
 
 import MessagesHeader from './MessagesHeader';

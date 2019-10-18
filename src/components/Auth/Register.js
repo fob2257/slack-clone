@@ -2,8 +2,6 @@ import React, { useState } from 'react';
 import { Grid, Form, Segment, Button, Header, Message, Icon } from 'semantic-ui-react';
 import { Link } from 'react-router-dom';
 
-import './Register.style.css';
-
 import { fireAuth, createUserDocument } from '../../firebase/firebase.util';
 
 const Register = () => {

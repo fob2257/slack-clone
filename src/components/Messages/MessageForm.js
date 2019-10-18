@@ -3,8 +3,6 @@ import { Segment, Button, Input } from 'semantic-ui-react';
 import { connect } from 'react-redux';
 import uuidv4 from 'uuid/v4';
 
-import './MessageForm.style.css';
-
 import firebase, { fireStorage } from '../../firebase/firebase.util';
 
 import FileModal from './FileModal';

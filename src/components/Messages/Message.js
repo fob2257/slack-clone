@@ -2,8 +2,6 @@ import React from 'react';
 import { Comment, Image } from 'semantic-ui-react';
 import moment from 'moment';
 
-import './Message.style.css';
-
 const Message = ({ message, currentUser }) => (
   <Comment>
     <Comment.Avatar src={message.user.photoUrl} />
