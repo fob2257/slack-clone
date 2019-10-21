@@ -46,10 +46,9 @@ const DirectMessages = ({ currentUser, currentChannel, setCurrentChannel }) => {
     connectedRef.on('value', async snapshot => {
       if (snapshot.val() !== true) return;
 
-      const userData = { ...currentUser, status: 'offline' };
-      const ref = presenceRef.child(userData.uid);
+      const ref = presenceRef.child(currentUser.uid);
 
-      await ref.set(userData);
+      await ref.set(currentUser);
 
       ref.onDisconnect()
         .remove(error => {

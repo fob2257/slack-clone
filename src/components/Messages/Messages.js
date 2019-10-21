@@ -15,8 +15,14 @@ const Messages = ({ currentUser, currentChannel, privateChannel }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filteredMessages, setFilteredMessages] = useState([]);
   const [searchLoading, setSearchLoading] = useState(false);
+  const [messagesRef, setMessagesRef] = useState(fireDatabase.ref('messages'));
 
-  const messagesRef = fireDatabase.ref('messages');
+  useEffect(() => {
+    const ref = privateChannel ? fireDatabase.ref('privateMessages')
+      : fireDatabase.ref('messages');
+
+    setMessagesRef(ref);
+  }, [currentChannel, privateChannel]);
 
   useEffect(() => {
     const emails = [...new Set(messages.map(m => m.user.email))];
@@ -53,7 +59,7 @@ const Messages = ({ currentUser, currentChannel, privateChannel }) => {
       messagesRef.off();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentChannel]);
+  }, [messagesRef]);
 
   useEffect(() => {
     setSearchLoading(true);
