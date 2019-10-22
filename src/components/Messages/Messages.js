@@ -16,12 +16,16 @@ const Messages = ({ currentUser, currentChannel, privateChannel }) => {
   const [filteredMessages, setFilteredMessages] = useState([]);
   const [searchLoading, setSearchLoading] = useState(false);
   const [messagesRef, setMessagesRef] = useState(fireDatabase.ref('messages'));
+  const [channelMsgsRef, setChannelMsgsRef] = useState(null);
 
   useEffect(() => {
     const ref = privateChannel ? fireDatabase.ref('privateMessages')
       : fireDatabase.ref('messages');
 
     setMessagesRef(ref);
+
+    if (currentChannel) setChannelMsgsRef(ref.child(currentChannel.id));
+
   }, [currentChannel, privateChannel]);
 
   useEffect(() => {
@@ -31,21 +35,11 @@ const Messages = ({ currentUser, currentChannel, privateChannel }) => {
   }, [messages]);
 
   const addListener = async () => {
-    if (currentChannel === null) return;
+    setMessages([]);
 
-    const msgRef = messagesRef.child(currentChannel.id);
-
-    const snapshot = await msgRef.once('value');
-    const snapvalue = snapshot.val();
-    const keys = snapvalue !== null ? Object.keys(snapvalue) : [];
-    const values = snapvalue !== null ? Object.values(snapvalue) : [];
-
-    setMessages(values);
-
-    msgRef.on('child_added', snapshot => {
+    const values = [];
+    channelMsgsRef.on('child_added', snapshot => {
       const val = snapshot.val();
-
-      if (keys.some(k => k === val.id)) return;
 
       values.push(val);
       setMessages([...values]);
@@ -53,13 +47,17 @@ const Messages = ({ currentUser, currentChannel, privateChannel }) => {
   };
 
   useEffect(() => {
+    // console.log(channelMsgsRef);
+    if (!channelMsgsRef) return;
+
     addListener();
 
     return () => {
-      messagesRef.off();
+      channelMsgsRef.off();
     };
+
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [messagesRef]);
+  }, [channelMsgsRef]);
 
   useEffect(() => {
     setSearchLoading(true);
