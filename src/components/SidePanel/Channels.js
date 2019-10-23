@@ -11,25 +11,54 @@ const Channels = ({ currentUser, currentChannel, setCurrentChannel }) => {
   const [modal, setModal] = useState(false);
   const [channelName, setChannelName] = useState('');
   const [channelDetails, setChannelDetails] = useState('');
+  const [channelsRef, setChannelsRef] = useState(fireDatabase.ref('channels'));
+  const [messagesRef, setMessagesRef] = useState(fireDatabase.ref('messages'));
+  const [notifications, setNotifications] = useState({});
 
-  const channelsRef = fireDatabase.ref('channels');
+
+  // TODO: WIP Channel Notification
+  // channel notification listeners
+  // const values = {};
+  // useEffect(() => {
+  //   const channelsMsgsRefs = channels
+  //     .reduce((acc, channel) => {
+  //       if (currentChannel && channel.id === currentChannel.id) return acc;
+
+  //       const msgsRef = messagesRef.child(channel.id);
+
+  //       let initialMsgs = -1;
+  //       msgsRef.on('value', snapshot => {
+
+  //         const totalMsgs = snapshot.numChildren();
+  //         if (initialMsgs < 0) initialMsgs = totalMsgs;
+
+  //         const total = totalMsgs - initialMsgs;
+
+  //         values[channel.id] = total;
+  //         console.log(values);
+  //         setNotifications({ ...values });
+  //       });
+
+
+  //       return [...acc, msgsRef];
+  //     }, []);
+
+  //   return () => {
+  //     channelsMsgsRefs.forEach(ref => ref.off());
+  //   };
+
+  //   // eslint-disable-next-line react-hooks/exhaustive-deps
+  // }, [currentChannel, channels]);
 
   const addListener = async () => {
-    const snapshot = await channelsRef.once('value');
-    const snapvalue = snapshot.val();
-    const keys = snapvalue !== null ? Object.keys(snapvalue) : [];
-    const values = snapvalue !== null ? Object.values(snapvalue) : [];
-
-    setChannels(values);
-    if (values.length) setCurrentChannel(values[0]);
-
+    const values = [];
     channelsRef.on('child_added', snapshot => {
       const val = snapshot.val();
 
-      if (keys.some(k => k === val.id)) return;
-
       values.push(val);
       setChannels([...values]);
+
+      if (values.length === 1) setCurrentChannel(val);
     });
   };
 
