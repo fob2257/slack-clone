@@ -1,69 +1,14 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import ReactDOM from 'react-dom';
-import {
-  BrowserRouter as Router,
-  Route,
-  Switch,
-  withRouter
-} from 'react-router-dom';
-import { connect } from 'react-redux';
+import { BrowserRouter as Router } from 'react-router-dom';
 
 import * as serviceWorker from './serviceWorker';
 
-import { fireAuth, getUser } from './firebase/firebase.util';
 import ReduxProvider from './redux';
-import { setCurrentUser } from './redux/actions/userActions';
-
-import Spinner from './components/common/Spinner';
-import ProtectedRoute from './components/common/ProtectedRoute';
-import HomePage from './components/App';
-import Register from './components/Auth/Register';
-import LogIn from './components/Auth/LogIn';
+import AppHOC from './App';
 
 import 'semantic-ui-css/semantic.min.css';
 import './index.style.css';
-
-const App = ({ history, isLoading, setCurrentUser }) => {
-  useEffect(() => {
-    const unsubscribeFn = fireAuth.onAuthStateChanged(async user => {
-      if (user) {
-        const userData = await getUser(user);
-
-        setCurrentUser(userData);
-        return history.push('/');
-      }
-
-      setCurrentUser(null);
-    });
-
-    return () => {
-      unsubscribeFn();
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  return isLoading ? (
-    <Spinner />
-  ) : (
-    <React.Fragment>
-      <Switch>
-        <ProtectedRoute exact path="/" component={HomePage} />
-        <Route path="/register" component={Register} />
-        <Route path="/logIn" component={LogIn} />
-      </Switch>
-    </React.Fragment>
-  );
-};
-
-const mapStateToProps = ({ user }) => ({
-  isLoading: user.isLoading
-});
-
-const mapDispatchToProps = dispatch => ({
-  setCurrentUser: user => dispatch(setCurrentUser(user))
-});
-
-const AppHOC = withRouter(connect(mapStateToProps, mapDispatchToProps)(App));
 
 const Root = () => (
   <div className="root">

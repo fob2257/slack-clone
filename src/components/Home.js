@@ -6,7 +6,7 @@ import SidePanel from './SidePanel/SidePanel';
 import Messages from './Messages/Messages';
 import MetaPanel from './MetaPanel/MetaPanel';
 
-const App = () => (
+const Home = () => (
   <Grid columns="equal" className="app" style={{ background: '#eee' }}>
     <ColorPanel />
     <SidePanel />
@@ -21,4 +21,4 @@ const App = () => (
   </Grid>
 );
 
-export default App;
+export default Home;
