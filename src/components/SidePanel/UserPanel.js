@@ -35,9 +35,8 @@ const UserPanel = ({ currentUser }) => (
                 text: <span>Change Avatar</span>
               },
               {
-                text: (
-                  <span onClick={async () => await signOut()}>Sign Out</span>
-                )
+                text: <span>Sign Out</span>,
+                onClick: async () => await signOut()
               }
             ].map((obj, i) => ({ ...obj, key: i }))}
           />

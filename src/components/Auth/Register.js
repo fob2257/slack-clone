@@ -21,7 +21,7 @@ const Register = () => {
   const [loading, setLoading] = useState(false);
 
   const clearInputs = () =>
-    [setUsername, setEmail, setPassword, setPasswordConfirmation].map(fn =>
+    [setUsername, setEmail, setPassword, setPasswordConfirmation].forEach(fn =>
       fn('')
     );
 
@@ -42,13 +42,14 @@ const Register = () => {
     if (password !== passwordConfirmation)
       errors.push({ message: 'Passwords did not match' });
 
+    setErrors(errors);
+
     return !(errors.length > 0);
   };
 
   const handleSubmit = async e => {
     e.preventDefault();
 
-    setErrors(errors);
     if (!isFormValid()) return;
 
     setLoading(true);

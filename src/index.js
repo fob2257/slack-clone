@@ -32,6 +32,7 @@ const App = ({ history, isLoading, setCurrentUser }) => {
         setCurrentUser(userData);
         return history.push('/');
       }
+
       setCurrentUser(null);
     });
 
