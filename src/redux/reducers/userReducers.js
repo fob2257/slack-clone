@@ -2,7 +2,7 @@ import constants from '../constants';
 
 const initialState = {
   currentUser: null,
-  isLoading: true,
+  isLoading: true
 };
 
 export default (state = initialState, { type, payload }) => {
@@ -11,10 +11,12 @@ export default (state = initialState, { type, payload }) => {
       return {
         ...state,
         currentUser: payload,
-        isLoading: false,
+        isLoading: false
       };
     }
 
-    default: { return state; }
+    default: {
+      return state;
+    }
   }
 };

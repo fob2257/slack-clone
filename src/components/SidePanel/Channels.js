@@ -4,7 +4,10 @@ import { connect } from 'react-redux';
 
 import firebase, { fireDatabase } from '../../firebase/firebase.util';
 
-import { setCurrentChannel, setPrivateChannel } from '../../redux/actions/channelActions';
+import {
+  setCurrentChannel,
+  setPrivateChannel
+} from '../../redux/actions/channelActions';
 
 const Channels = ({ currentUser, currentChannel, setCurrentChannel }) => {
   const [channels, setChannels] = useState([]);
@@ -14,7 +17,6 @@ const Channels = ({ currentUser, currentChannel, setCurrentChannel }) => {
   const [channelsRef, setChannelsRef] = useState(fireDatabase.ref('channels'));
   const [messagesRef, setMessagesRef] = useState(fireDatabase.ref('messages'));
   const [notifications, setNotifications] = useState({});
-
 
   // TODO: WIP Channel Notification
   // channel notification listeners
@@ -38,7 +40,6 @@ const Channels = ({ currentUser, currentChannel, setCurrentChannel }) => {
   //         console.log(values);
   //         setNotifications({ ...values });
   //       });
-
 
   //       return [...acc, msgsRef];
   //     }, []);
@@ -89,9 +90,9 @@ const Channels = ({ currentUser, currentChannel, setCurrentChannel }) => {
         details: channelDetails,
         createdBy: {
           name: currentUser.displayName,
-          avatar: currentUser.photoUrl,
+          avatar: currentUser.photoUrl
         },
-        timestamp: firebase.database.ServerValue.TIMESTAMP,
+        timestamp: firebase.database.ServerValue.TIMESTAMP
       };
 
       await channelsRef.child(key).update(newChannel);
@@ -112,76 +113,61 @@ const Channels = ({ currentUser, currentChannel, setCurrentChannel }) => {
 
   return (
     <React.Fragment>
-      <Menu.Menu className='menu'>
+      <Menu.Menu className="menu">
         <Menu.Item>
           <span>
-            <Icon name='exchange' /> CHANNELS
-          </span>
-          {' '}
+            <Icon name="exchange" /> CHANNELS
+          </span>{' '}
           ({channels.length})
           <Icon
-            name='add'
+            name="add"
             onClick={() => setModal(true)}
             style={{ cursor: 'pointer' }}
           />
         </Menu.Item>
-        {
-          channels.map(channel => (
-            <Menu.Item
-              key={channel.id}
-              name={channel.name}
-              style={{ opacity: 0.7 }}
-              onClick={() => setCurrentChannel(channel)}
-              active={currentChannel && currentChannel.id === channel.id}
-            >
-              # {channel.name}
-            </Menu.Item>
-          ))
-        }
+        {channels.map(channel => (
+          <Menu.Item
+            key={channel.id}
+            name={channel.name}
+            style={{ opacity: 0.7 }}
+            onClick={() => setCurrentChannel(channel)}
+            active={currentChannel && currentChannel.id === channel.id}
+          >
+            # {channel.name}
+          </Menu.Item>
+        ))}
       </Menu.Menu>
 
-      <Modal
-        basic
-        open={modal}
-        onClose={closeModal}
-      >
+      <Modal basic open={modal} onClose={closeModal}>
         <Modal.Header>Add A Channel</Modal.Header>
         <Modal.Content>
           <Form>
             <Form.Field>
               <Input
                 fluid
-                label='Name Of Channel'
-                name='channelName'
-                onChange={(e) => setChannelName(e.target.value)}
+                label="Name Of Channel"
+                name="channelName"
+                onChange={e => setChannelName(e.target.value)}
               />
             </Form.Field>
 
             <Form.Field>
               <Input
                 fluid
-                label='About The Channel'
-                name='channelDetails'
-                onChange={(e) => setChannelDetails(e.target.value)}
+                label="About The Channel"
+                name="channelDetails"
+                onChange={e => setChannelDetails(e.target.value)}
               />
             </Form.Field>
           </Form>
         </Modal.Content>
 
         <Modal.Actions>
-          <Button
-            color='green'
-            inverted
-            onClick={handleSubmit}
-          >
-            <Icon name='checkmark' /> Add
+          <Button color="green" inverted onClick={handleSubmit}>
+            <Icon name="checkmark" /> Add
           </Button>
-          <Button
-            color='red'
-            inverted
-            onClick={closeModal}
-          >
-            <Icon name='remove' /> Cancel
+          <Button color="red" inverted onClick={closeModal}>
+            <Icon name="remove" /> Cancel
           </Button>
         </Modal.Actions>
       </Modal>
@@ -191,14 +177,14 @@ const Channels = ({ currentUser, currentChannel, setCurrentChannel }) => {
 
 const mapStateToProps = ({ user, channel }) => ({
   currentUser: user.currentUser,
-  currentChannel: channel.currentChannel,
+  currentChannel: channel.currentChannel
 });
 
 const mapDispatchToProps = dispatch => ({
   setCurrentChannel: channel => {
     dispatch(setCurrentChannel(channel));
     dispatch(setPrivateChannel(false));
-  },
+  }
 });
 
 export default connect(mapStateToProps, mapDispatchToProps)(Channels);

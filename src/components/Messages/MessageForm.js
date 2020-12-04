@@ -13,7 +13,7 @@ const MessageForm = ({
   setProgressBarVisible,
   currentUser,
   currentChannel,
-  privateChannel,
+  privateChannel
 }) => {
   const [message, setMessage] = useState('');
   const [modal, setModal] = useState(false);
@@ -28,9 +28,12 @@ const MessageForm = ({
 
   useEffect(() => {
     if (uploadTask) {
-      uploadTask.on('state_changed',
+      uploadTask.on(
+        'state_changed',
         snapshot => {
-          const percentage = Math.round((snapshot.bytesTransferred / snapshot.totalBytes) * 100);
+          const percentage = Math.round(
+            (snapshot.bytesTransferred / snapshot.totalBytes) * 100
+          );
 
           setPercentage(percentage);
         },
@@ -49,7 +52,7 @@ const MessageForm = ({
               id: key,
               image: url,
               user: currentUser,
-              timestamp: firebase.database.ServerValue.TIMESTAMP,
+              timestamp: firebase.database.ServerValue.TIMESTAMP
             };
 
             await msgRef.child(key).update(newMessage);
@@ -62,13 +65,14 @@ const MessageForm = ({
             setUploading(false);
             setUploadTask(null);
           }
-        });
+        }
+      );
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [uploadTask]);
 
   const sendMessage = async () => {
-    if (!(!!message.length)) return setErrors([{ message: 'Add a message' }]);
+    if (!!!message.length) return setErrors([{ message: 'Add a message' }]);
 
     setLoading(true);
     try {
@@ -77,7 +81,7 @@ const MessageForm = ({
         id: key,
         content: message,
         user: currentUser,
-        timestamp: firebase.database.ServerValue.TIMESTAMP,
+        timestamp: firebase.database.ServerValue.TIMESTAMP
       };
 
       await msgRef.child(key).update(newMessage);
@@ -90,8 +94,8 @@ const MessageForm = ({
     setLoading(false);
   };
 
-  const getPath = () => privateChannel ? `chat/private-${currentChannel.id}`
-    : 'chat/public';
+  const getPath = () =>
+    privateChannel ? `chat/private-${currentChannel.id}` : 'chat/public';
 
   const uploadFile = (file, metadata) => {
     const [ext] = file.name.split('.').reverse();
@@ -109,30 +113,30 @@ const MessageForm = ({
     <Segment>
       <Input
         fluid
-        name='message'
+        name="message"
         style={{ marginBottom: '0.7em' }}
-        label={<Button icon='add' />}
-        labelPosition='left'
-        placeholder='Write Your Message'
+        label={<Button icon="add" />}
+        labelPosition="left"
+        placeholder="Write Your Message"
         value={message}
-        onChange={(e) => setMessage(e.target.value)}
+        onChange={e => setMessage(e.target.value)}
       />
 
-      <Button.Group widths='2' icon>
+      <Button.Group widths="2" icon>
         <Button
-          color='orange'
-          content='Add Reply'
-          labelPosition='left'
-          icon='edit'
+          color="orange"
+          content="Add Reply"
+          labelPosition="left"
+          icon="edit"
           onClick={sendMessage}
           loading={loading}
           disabled={loading}
         />
         <Button
-          color='teal'
-          content='Upload Media'
-          labelPosition='right'
-          icon='cloud upload'
+          color="teal"
+          content="Upload Media"
+          labelPosition="right"
+          icon="cloud upload"
           onClick={() => setModal(true)}
           loading={uploading}
           disabled={uploading}
@@ -145,9 +149,7 @@ const MessageForm = ({
         uploadFile={uploadFile}
       />
 
-      {
-        uploading && <ProgressBar percentage={percentage} />
-      }
+      {uploading && <ProgressBar percentage={percentage} />}
     </Segment>
   );
 };
@@ -155,7 +157,7 @@ const MessageForm = ({
 const mapStateToProps = ({ user, channel }) => ({
   currentUser: user.currentUser,
   currentChannel: channel.currentChannel,
-  privateChannel: channel.privateChannel,
+  privateChannel: channel.privateChannel
 });
 
 export default connect(mapStateToProps)(MessageForm);

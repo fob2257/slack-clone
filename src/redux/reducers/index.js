@@ -5,5 +5,5 @@ import channelReducers from './channelReducers';
 
 export default combineReducers({
   user: userReducers,
-  channel: channelReducers,
+  channel: channelReducers
 });

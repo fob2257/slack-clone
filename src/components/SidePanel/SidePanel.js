@@ -7,8 +7,8 @@ import DirectMessages from './DirectMessages';
 
 const SidePanel = () => (
   <Menu
-    size='large'
-    fixed='left'
+    size="large"
+    fixed="left"
     vertical
     inverted
     style={{

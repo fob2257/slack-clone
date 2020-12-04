@@ -1,5 +1,13 @@
 import React, { useState } from 'react';
-import { Grid, Form, Segment, Button, Header, Message, Icon } from 'semantic-ui-react';
+import {
+  Grid,
+  Form,
+  Segment,
+  Button,
+  Header,
+  Message,
+  Icon
+} from 'semantic-ui-react';
 import { Link } from 'react-router-dom';
 
 import { signInWithEmail } from '../../firebase/firebase.util';
@@ -29,44 +37,39 @@ const LogIn = () => {
   };
 
   return (
-    <Grid textAlign='center' verticalAlign='middle' className='register'>
+    <Grid textAlign="center" verticalAlign="middle" className="register">
       <Grid.Column style={{ maxWidth: 450 }}>
-        <Header
-          as='h1'
-          color='violet'
-          textAlign='center'
-          icon
-        >
-          <Icon name='code branch' color='violet' />
+        <Header as="h1" color="violet" textAlign="center" icon>
+          <Icon name="code branch" color="violet" />
           LogIn to DevChat
         </Header>
-        <Form size='large' onSubmit={handleSubmit}>
+        <Form size="large" onSubmit={handleSubmit}>
           <Segment stacked>
             <Form.Input
-              type='email'
-              name='email'
-              placeholder='Email Address'
-              icon='mail'
-              iconPosition='left'
+              type="email"
+              name="email"
+              placeholder="Email Address"
+              icon="mail"
+              iconPosition="left"
               fluid
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              onChange={e => setEmail(e.target.value)}
             />
             <Form.Input
-              type='password'
-              name='password'
-              placeholder='Password'
-              icon='lock'
-              iconPosition='left'
+              type="password"
+              name="password"
+              placeholder="Password"
+              icon="lock"
+              iconPosition="left"
               fluid
               value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              onChange={e => setPassword(e.target.value)}
             />
 
             <Button
-              type='submit'
-              color='violet'
-              size='large'
+              type="submit"
+              color="violet"
+              size="large"
               fluid
               className={`${loading && 'loading'}`}
               disabled={loading}
@@ -75,18 +78,16 @@ const LogIn = () => {
             </Button>
           </Segment>
         </Form>
-        {
-          errors.length ? (
-            <Message error>
-              <h3>Error</h3>
-              {
-                errors.map((err, i) => <p key={i}>{err.message}</p>)
-              }
-            </Message>
-          ) : null
-        }
+        {errors.length ? (
+          <Message error>
+            <h3>Error</h3>
+            {errors.map((err, i) => (
+              <p key={i}>{err.message}</p>
+            ))}
+          </Message>
+        ) : null}
         <Message>
-          Don't have an account? <Link to='/register'>Register</Link>
+          Don't have an account? <Link to="/register">Register</Link>
         </Message>
       </Grid.Column>
     </Grid>

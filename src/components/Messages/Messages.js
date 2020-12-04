@@ -19,13 +19,13 @@ const Messages = ({ currentUser, currentChannel, privateChannel }) => {
   const [channelMsgsRef, setChannelMsgsRef] = useState(null);
 
   useEffect(() => {
-    const ref = privateChannel ? fireDatabase.ref('privateMessages')
+    const ref = privateChannel
+      ? fireDatabase.ref('privateMessages')
       : fireDatabase.ref('messages');
 
     setMessagesRef(ref);
 
     if (currentChannel) setChannelMsgsRef(ref.child(currentChannel.id));
-
   }, [currentChannel, privateChannel]);
 
   useEffect(() => {
@@ -61,11 +61,15 @@ const Messages = ({ currentUser, currentChannel, privateChannel }) => {
 
   useEffect(() => {
     setSearchLoading(true);
-    if (searchTerm.length === 0 && filteredMessages.length) setFilteredMessages([]);
+    if (searchTerm.length === 0 && filteredMessages.length)
+      setFilteredMessages([]);
 
     const regex = new RegExp(searchTerm, 'gi');
-    const msgs = messages.filter(m => (m.hasOwnProperty('content') && m.content.match(regex))
-      || m.user.displayName.match(regex));
+    const msgs = messages.filter(
+      m =>
+        (m.hasOwnProperty('content') && m.content.match(regex)) ||
+        m.user.displayName.match(regex)
+    );
 
     setFilteredMessages(msgs);
 
@@ -78,13 +82,9 @@ const Messages = ({ currentUser, currentChannel, privateChannel }) => {
   }, [searchTerm]);
 
   const displayMessages = (msgs = []) =>
-    msgs.map((message, i) =>
-      <Message
-        key={i}
-        message={message}
-        currentUser={currentUser}
-      />
-    );
+    msgs.map((message, i) => (
+      <Message key={i} message={message} currentUser={currentUser} />
+    ));
 
   return currentChannel ? (
     <React.Fragment>
@@ -98,11 +98,12 @@ const Messages = ({ currentUser, currentChannel, privateChannel }) => {
       />
 
       <Segment>
-        <Comment.Group className={progressBarVisible ? 'messages__progress' : 'messages'}>
-          {
-            searchTerm.length ? displayMessages(filteredMessages)
-              : displayMessages(messages)
-          }
+        <Comment.Group
+          className={progressBarVisible ? 'messages__progress' : 'messages'}
+        >
+          {searchTerm.length
+            ? displayMessages(filteredMessages)
+            : displayMessages(messages)}
         </Comment.Group>
       </Segment>
 
@@ -111,14 +112,13 @@ const Messages = ({ currentUser, currentChannel, privateChannel }) => {
         setProgressBarVisible={boolVal => setProgressBarVisible(boolVal)}
       />
     </React.Fragment>
-  )
-    : null;
+  ) : null;
 };
 
 const mapStateToProps = ({ user, channel }) => ({
   currentUser: user.currentUser,
   currentChannel: channel.currentChannel,
-  privateChannel: channel.privateChannel,
+  privateChannel: channel.privateChannel
 });
 
 export default connect(mapStateToProps)(Messages);

@@ -3,9 +3,9 @@ import { Progress } from 'semantic-ui-react';
 
 const ProgressBar = ({ percentage }) => (
   <Progress
-    className='progress__bar'
+    className="progress__bar"
     percent={percentage}
-    size='medium'
+    size="medium"
     progress
     indicating
     inverted

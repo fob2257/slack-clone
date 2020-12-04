@@ -6,7 +6,11 @@ const FileModal = ({ modal, closeModal, uploadFile }) => {
   const [file, setFile] = useState(null);
 
   const addFile = e => {
-    const { target: { files: [file] } } = e;
+    const {
+      target: {
+        files: [file]
+      }
+    } = e;
 
     if (file) setFile(file);
   };
@@ -33,26 +37,18 @@ const FileModal = ({ modal, closeModal, uploadFile }) => {
       <Modal.Content>
         <Input
           fluid
-          name='file'
-          type='file'
-          label='File types: jpg, png'
+          name="file"
+          type="file"
+          label="File types: jpg, png"
           onChange={addFile}
         />
       </Modal.Content>
       <Modal.Actions>
-        <Button
-          inverted
-          color='green'
-          onClick={sendFile}
-        >
-          <Icon name='checkmark' /> Send
+        <Button inverted color="green" onClick={sendFile}>
+          <Icon name="checkmark" /> Send
         </Button>
-        <Button
-          inverted
-          color='red'
-          onClick={closeModal}
-        >
-          <Icon name='remove' /> Cancel
+        <Button inverted color="red" onClick={closeModal}>
+          <Icon name="remove" /> Cancel
         </Button>
       </Modal.Actions>
     </Modal>
