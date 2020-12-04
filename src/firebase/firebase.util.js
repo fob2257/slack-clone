@@ -12,7 +12,8 @@ export const fireStore = firebase.firestore();
 export const fireDatabase = firebase.database();
 export const fireStorage = firebase.storage();
 
-export const signInWithEmail = (email, password) => fireAuth.signInWithEmailAndPassword(email, password);
+export const signInWithEmail = (email, password) =>
+  fireAuth.signInWithEmailAndPassword(email, password);
 
 export const signOut = () => fireAuth.signOut();
 
@@ -25,34 +26,39 @@ export const getCurrentUser = () =>
     }, reject);
   });
 
-export const createUserDocument = async (user, additionalData = {}) => {
+export const getUser = async user => {
   if (!user) return;
 
-  const docRef = fireStore.doc(`users/${user.uid}`);
-  const docSnapshot = await docRef.get();
+  const userRef = fireDatabase.ref(`users/${user.uid}`);
+  const userSnapshot = await userRef.once('value');
+  const userData = userSnapshot.val();
 
-  if (!docSnapshot.exists) {
-    const {
-      displayName,
-      email,
-      photoUrl,
-      createdAt = new Date(),
-    } = user;
+  return userData;
+};
+
+export const createUser = async (user, additionalData = {}) => {
+  if (!user) return;
+  const userRef = fireDatabase.ref(`users/${user.uid}`);
+  const userData = await getUser(user);
+
+  if (!userData) {
+    const { displayName, email, photoUrl, createdAt = new Date() } = user;
 
     try {
-      await docRef.set({
+      await userRef.set({
         displayName,
         email,
         createdAt,
         uid: user.uid,
-        photoUrl: (photoUrl) ? photoUrl
+        photoUrl: photoUrl
+          ? photoUrl
           : `http://gravatar.com/avatar/${md5(user.email)}?d=identicon`,
-        ...additionalData,
+        ...additionalData
       });
     } catch (error) {
       console.error(error);
     }
   }
 
-  return docRef;
+  return userRef;
 };

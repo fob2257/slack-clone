@@ -1,33 +1,33 @@
 import React, { useEffect } from 'react';
 import ReactDOM from 'react-dom';
-import { BrowserRouter as Router, Route, Switch, withRouter } from 'react-router-dom';
+import {
+  BrowserRouter as Router,
+  Route,
+  Switch,
+  withRouter
+} from 'react-router-dom';
 import { connect } from 'react-redux';
 
 import * as serviceWorker from './serviceWorker';
 
-import 'semantic-ui-css/semantic.min.css';
-
-import './index.style.css';
-
-import { fireAuth, createUserDocument } from './firebase/firebase.util';
-
+import { fireAuth, getUser } from './firebase/firebase.util';
 import ReduxProvider from './redux';
 import { setCurrentUser } from './redux/actions/userActions';
 
 import Spinner from './components/common/Spinner';
 import ProtectedRoute from './components/common/ProtectedRoute';
-
 import HomePage from './components/App';
 import Register from './components/Auth/Register';
 import LogIn from './components/Auth/LogIn';
+
+import 'semantic-ui-css/semantic.min.css';
+import './index.style.css';
 
 const App = ({ history, isLoading, setCurrentUser }) => {
   useEffect(() => {
     const unsubscribeFn = fireAuth.onAuthStateChanged(async user => {
       if (user) {
-        const userRef = await createUserDocument(user);
-        const userSnap = await userRef.get();
-        const userData = userSnap.data();
+        const userData = await getUser(user);
 
         setCurrentUser(userData);
         return history.push('/');
@@ -41,29 +41,31 @@ const App = ({ history, isLoading, setCurrentUser }) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  return isLoading ? <Spinner /> : (
+  return isLoading ? (
+    <Spinner />
+  ) : (
     <React.Fragment>
       <Switch>
-        <ProtectedRoute exact path='/' component={HomePage} />
-        <Route path='/register' component={Register} />
-        <Route path='/logIn' component={LogIn} />
+        <ProtectedRoute exact path="/" component={HomePage} />
+        <Route path="/register" component={Register} />
+        <Route path="/logIn" component={LogIn} />
       </Switch>
     </React.Fragment>
   );
 };
 
 const mapStateToProps = ({ user }) => ({
-  isLoading: user.isLoading,
+  isLoading: user.isLoading
 });
 
 const mapDispatchToProps = dispatch => ({
-  setCurrentUser: user => dispatch(setCurrentUser(user)),
+  setCurrentUser: user => dispatch(setCurrentUser(user))
 });
 
 const AppHOC = withRouter(connect(mapStateToProps, mapDispatchToProps)(App));
 
 const Root = () => (
-  <div className='root'>
+  <div className="root">
     <ReduxProvider>
       <Router>
         <AppHOC />

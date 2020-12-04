@@ -2,17 +2,17 @@ import React, { useState, useEffect } from 'react';
 import { Menu, Icon } from 'semantic-ui-react';
 import { connect } from 'react-redux';
 
-import { fireDatabase, fireStore } from '../../firebase/firebase.util';
-
-import { setCurrentChannel, setPrivateChannel } from '../../redux/actions/channelActions';
+import { fireDatabase } from '../../firebase/firebase.util';
+import {
+  setCurrentChannel,
+  setPrivateChannel
+} from '../../redux/actions/channelActions';
 
 const DirectMessages = ({ currentUser, currentChannel, setCurrentChannel }) => {
   const [users, setUsers] = useState([]);
   const [presenceChild, setPresenceChild] = useState(null);
 
-  // firestore
-  const usersRef = fireStore.collection('users');
-  // database
+  const usersRef = fireDatabase.ref('users');
   const connectedRef = fireDatabase.ref('.info/connected');
   const presenceRef = fireDatabase.ref('presence');
 
@@ -29,16 +29,14 @@ const DirectMessages = ({ currentUser, currentChannel, setCurrentChannel }) => {
 
     setPresenceChild(null);
     setUsers([...users]);
-
   }, [users, presenceChild]);
-
 
   const addListeners = async () => {
     // set users
-    const snapshot = await usersRef.get();
-    const docs = snapshot.docs
-      .filter(doc => doc.id !== currentUser.uid)
-      .map(doc => ({ ...doc.data(), status: 'offline' }));
+    const snapshots = (await usersRef.once('value')).val();
+    const docs = Object.values(snapshots)
+      .filter(doc => doc.uid !== currentUser.uid)
+      .map(doc => ({ ...doc, status: 'offline' }));
 
     setUsers(docs);
 
@@ -50,10 +48,9 @@ const DirectMessages = ({ currentUser, currentChannel, setCurrentChannel }) => {
 
       await ref.set(currentUser);
 
-      ref.onDisconnect()
-        .remove(error => {
-          if (error !== null) console.error(error);
-        });
+      ref.onDisconnect().remove(error => {
+        if (error !== null) console.error(error);
+      });
     });
 
     // track users presence, set/unset users
@@ -81,54 +78,52 @@ const DirectMessages = ({ currentUser, currentChannel, setCurrentChannel }) => {
   }, []);
 
   const getChannelId = user =>
-    user.uid < currentUser.uid ? `${user.uid}__${currentUser.uid}`
+    user.uid < currentUser.uid
+      ? `${user.uid}__${currentUser.uid}`
       : `${currentUser.uid}__${user.uid}`;
 
   const changeChannel = user =>
     setCurrentChannel({
       id: getChannelId(user),
-      name: user.displayName,
+      name: user.displayName
     });
 
   return (
-    <Menu.Menu className='menu'>
+    <Menu.Menu className="menu">
       <Menu.Item>
         <span>
-          <Icon name='mail' /> DIRECT MESSAGES
-        </span>
-        {' '}
+          <Icon name="mail" /> DIRECT MESSAGES
+        </span>{' '}
         ({users.length})
       </Menu.Item>
-      {
-        users.map(user => (
-          <Menu.Item
-            key={user.uid}
-            onClick={() => changeChannel(user)}
-            style={{ opacity: 0.7, fontStyle: 'italic' }}
-            active={currentChannel && currentChannel.id === getChannelId(user)}
-          >
-            <Icon
-              name='circle'
-              color={user.status === 'online' ? 'green' : 'red'}
-            />
-            @ {user.displayName}
-          </Menu.Item>
-        ))
-      }
+      {users.map(user => (
+        <Menu.Item
+          key={user.uid}
+          onClick={() => changeChannel(user)}
+          style={{ opacity: 0.7, fontStyle: 'italic' }}
+          active={currentChannel && currentChannel.id === getChannelId(user)}
+        >
+          <Icon
+            name="circle"
+            color={user.status === 'online' ? 'green' : 'red'}
+          />
+          @ {user.displayName}
+        </Menu.Item>
+      ))}
     </Menu.Menu>
   );
 };
 
 const mapStateToProps = ({
   user: { currentUser },
-  channel: { currentChannel },
+  channel: { currentChannel }
 }) => ({ currentUser, currentChannel });
 
 const mapDispatchToProps = dispatch => ({
   setCurrentChannel: channel => {
     dispatch(setCurrentChannel(channel));
     dispatch(setPrivateChannel(true));
-  },
+  }
 });
 
 export default connect(mapStateToProps, mapDispatchToProps)(DirectMessages);

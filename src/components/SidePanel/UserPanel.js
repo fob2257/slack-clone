@@ -8,39 +8,37 @@ const UserPanel = ({ currentUser }) => (
   <Grid style={{ background: '#4c3c4c' }}>
     <Grid.Column>
       <Grid.Row style={{ padding: '1.2em', margin: 0 }}>
-        <Header
-          as='h2'
-          floated='left'
-          inverted
-        >
-          <Icon name='code' />
+        <Header as="h2" floated="left" inverted>
+          <Icon name="code" />
           <Header.Content>DevChat</Header.Content>
         </Header>
 
         {/* Dropdown */}
-        <Header
-          as='h4'
-          inverted
-          style={{ padding: '0.25em' }}
-        >
+        <Header as="h4" inverted style={{ padding: '0.25em' }}>
           <Dropdown
-            trigger={(
+            trigger={
               <span>
-                <Image src={currentUser.photoUrl} spaced='right' avatar />
+                <Image src={currentUser.photoUrl} spaced="right" avatar />
                 {currentUser.displayName}
               </span>
-            )}
+            }
             options={[
               {
-                text: <span>Signed in as <strong>{currentUser.displayName}</strong></span>,
-                disabled: true,
+                text: (
+                  <span>
+                    Signed in as <strong>{currentUser.displayName}</strong>
+                  </span>
+                ),
+                disabled: true
               },
               {
                 text: <span>Change Avatar</span>
               },
               {
-                text: <span onClick={signOut}>Sign Out</span>
-              },
+                text: (
+                  <span onClick={async () => await signOut()}>Sign Out</span>
+                )
+              }
             ].map((obj, i) => ({ ...obj, key: i }))}
           />
         </Header>
@@ -50,7 +48,7 @@ const UserPanel = ({ currentUser }) => (
 );
 
 const mapStateToProps = ({ user }) => ({
-  currentUser: user.currentUser,
+  currentUser: user.currentUser
 });
 
 export default connect(mapStateToProps)(UserPanel);
