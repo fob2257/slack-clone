@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Segment, Comment } from 'semantic-ui-react';
 import { connect } from 'react-redux';
 
@@ -17,6 +17,7 @@ const Messages = ({ currentUser, currentChannel, privateChannel }) => {
   const [searchLoading, setSearchLoading] = useState(false);
   const [messagesRef, setMessagesRef] = useState(fireDatabase.ref('messages'));
   const [channelMsgsRef, setChannelMsgsRef] = useState(null);
+  const messagesEndRef = useRef(null);
 
   useEffect(() => {
     const ref = privateChannel
@@ -29,20 +30,34 @@ const Messages = ({ currentUser, currentChannel, privateChannel }) => {
   }, [currentChannel, privateChannel]);
 
   useEffect(() => {
-    const emails = [...new Set(messages.map(m => m.user.email))];
+    const timeoutId = setTimeout(() => {
+      if (messagesEndRef.current) {
+        messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+      }
 
-    setUniqueUsers(emails);
+      clearTimeout(timeoutId);
+    }, 1000);
+
+    return () => {
+      clearTimeout(timeoutId);
+    };
   }, [messages]);
 
   const addListener = async () => {
-    setMessages([]);
-
     const values = [];
+
+    setMessages(values);
+
     channelMsgsRef.on('child_added', snapshot => {
       const val = snapshot.val();
 
       values.push(val);
       setMessages([...values]);
+
+      if (!privateChannel) {
+        const emails = [...new Set(values.map(m => m.user.email))];
+        setUniqueUsers(emails);
+      }
     });
   };
 
@@ -82,9 +97,7 @@ const Messages = ({ currentUser, currentChannel, privateChannel }) => {
   }, [searchTerm]);
 
   const displayMessages = (msgs = []) =>
-    msgs.map((message, i) => (
-      <Message key={i} message={message} currentUser={currentUser} />
-    ));
+    msgs.map((message, i) => <Message {...{ key: i, message, currentUser }} />);
 
   return currentChannel ? (
     <React.Fragment>
@@ -99,11 +112,13 @@ const Messages = ({ currentUser, currentChannel, privateChannel }) => {
 
       <Segment>
         <Comment.Group
+          style={{ maxWidth: '100%' }}
           className={progressBarVisible ? 'messages__progress' : 'messages'}
         >
           {searchTerm.length
             ? displayMessages(filteredMessages)
             : displayMessages(messages)}
+          <div ref={messagesEndRef} />
         </Comment.Group>
       </Segment>
 
