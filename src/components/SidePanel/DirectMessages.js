@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Menu, Icon } from 'semantic-ui-react';
+import { Menu, Icon, Label } from 'semantic-ui-react';
 import { connect } from 'react-redux';
 
 import { fireDatabase } from '../../firebase/firebase.util';
@@ -8,13 +8,20 @@ import {
   setPrivateChannel
 } from '../../redux/actions/channelActions';
 
-const DirectMessages = ({ currentUser, currentChannel, setCurrentChannel }) => {
+const DirectMessages = ({
+  currentUser,
+  currentChannel,
+  privateChannel,
+  setCurrentChannel
+}) => {
   const [users, setUsers] = useState([]);
+  const [notifications, setNotifications] = useState({});
   const [presenceChild, setPresenceChild] = useState(null);
 
   const usersRef = fireDatabase.ref('users');
   const connectedRef = fireDatabase.ref('.info/connected');
   const presenceRef = fireDatabase.ref('presence');
+  const privateMessagesRef = fireDatabase.ref('privateMessages');
 
   useEffect(() => {
     if (presenceChild === null) return;
@@ -22,21 +29,71 @@ const DirectMessages = ({ currentUser, currentChannel, setCurrentChannel }) => {
     const index = users.findIndex(user => user.uid === presenceChild.uid);
 
     if (index > -1) {
-      users[index] = { ...presenceChild };
+      users[index] = {
+        ...presenceChild,
+        channelId: getChannelId(presenceChild)
+      };
     } else {
-      users.push({ ...presenceChild });
+      users.push({ ...presenceChild, channelId: getChannelId(presenceChild) });
     }
 
     setPresenceChild(null);
     setUsers([...users]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [users, presenceChild]);
+
+  useEffect(() => {
+    if (!privateChannel && users.length > 0) {
+      const usersChannelsRefs = users
+        // .map(user => getChannelId(user))
+        .map(({ channelId }) => ({
+          channelId,
+          ref: privateMessagesRef.child(channelId)
+        }));
+
+      usersChannelsRefs.forEach(({ channelId, ref }) => {
+        ref.on('value', snapshot => {
+          if (
+            !notifications.hasOwnProperty(channelId) ||
+            (currentChannel && currentChannel.id === channelId)
+          ) {
+            notifications[channelId] = {
+              id: channelId,
+              total: snapshot.numChildren(),
+              count: 0
+            };
+          }
+
+          const { total } = notifications[channelId];
+          const curr = snapshot.numChildren();
+          const res = curr - total;
+
+          if (res > 0) {
+            notifications[channelId].count += res;
+            notifications[channelId].total = curr;
+          }
+
+          setNotifications({ ...notifications });
+        });
+      });
+
+      return () => {
+        usersChannelsRefs.forEach(({ ref }) => ref.off());
+      };
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [users, privateChannel, currentChannel]);
 
   const addListeners = async () => {
     // set users
     const snapshots = (await usersRef.once('value')).val();
     const docs = Object.values(snapshots)
       .filter(doc => doc.uid !== currentUser.uid)
-      .map(doc => ({ ...doc, status: 'offline' }));
+      .map(doc => ({
+        ...doc,
+        status: 'offline',
+        channelId: getChannelId(doc)
+      }));
 
     setUsers(docs);
 
@@ -82,11 +139,17 @@ const DirectMessages = ({ currentUser, currentChannel, setCurrentChannel }) => {
       ? `${user.uid}__${currentUser.uid}`
       : `${currentUser.uid}__${user.uid}`;
 
-  const changeChannel = user =>
+  const changeChannel = user => {
     setCurrentChannel({
       id: getChannelId(user),
       name: user.displayName
     });
+
+    delete notifications[getChannelId(user)];
+  };
+
+  const isActive = user =>
+    currentChannel && currentChannel.id === getChannelId(user);
 
   return (
     <Menu.Menu className="menu">
@@ -99,15 +162,25 @@ const DirectMessages = ({ currentUser, currentChannel, setCurrentChannel }) => {
       {users.map(user => (
         <Menu.Item
           key={user.uid}
-          onClick={() => changeChannel(user)}
+          active={isActive(user)}
           style={{ opacity: 0.7, fontStyle: 'italic' }}
-          active={currentChannel && currentChannel.id === getChannelId(user)}
+          onClick={() => changeChannel(user)}
         >
-          <Icon
-            name="circle"
-            color={user.status === 'online' ? 'green' : 'red'}
-          />
           @ {user.displayName}
+          <>
+            {' '}
+            {currentChannel &&
+              currentChannel.id !== user.channelId &&
+              notifications[user.channelId] &&
+              notifications[user.channelId].count > 0 && (
+                <Label color="red">{notifications[user.channelId].count}</Label>
+              )}
+            <Icon
+              name="circle"
+              style={{ float: 'right' }}
+              color={user.status === 'online' ? 'green' : 'red'}
+            />
+          </>
         </Menu.Item>
       ))}
     </Menu.Menu>
@@ -116,8 +189,8 @@ const DirectMessages = ({ currentUser, currentChannel, setCurrentChannel }) => {
 
 const mapStateToProps = ({
   user: { currentUser },
-  channel: { currentChannel }
-}) => ({ currentUser, currentChannel });
+  channel: { currentChannel, privateChannel }
+}) => ({ currentUser, currentChannel, privateChannel });
 
 const mapDispatchToProps = dispatch => ({
   setCurrentChannel: channel => {

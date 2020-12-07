@@ -1,5 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { Menu, Icon, Modal, Form, Input, Button } from 'semantic-ui-react';
+import {
+  Menu,
+  Icon,
+  Modal,
+  Form,
+  Input,
+  Button,
+  Label
+} from 'semantic-ui-react';
 import { connect } from 'react-redux';
 
 import firebase, { fireDatabase } from '../../firebase/firebase.util';
@@ -14,52 +22,58 @@ const Channels = ({ currentUser, currentChannel, setCurrentChannel }) => {
   const [modal, setModal] = useState(false);
   const [channelName, setChannelName] = useState('');
   const [channelDetails, setChannelDetails] = useState('');
-  const [channelsRef, setChannelsRef] = useState(fireDatabase.ref('channels'));
-  const [messagesRef, setMessagesRef] = useState(fireDatabase.ref('messages'));
   const [notifications, setNotifications] = useState({});
 
-  // TODO: WIP Channel Notification
-  // channel notification listeners
-  // const values = {};
-  // useEffect(() => {
-  //   const channelsMsgsRefs = channels
-  //     .reduce((acc, channel) => {
-  //       if (currentChannel && channel.id === currentChannel.id) return acc;
+  const channelsRef = fireDatabase.ref('channels');
+  const messagesRef = fireDatabase.ref('messages');
 
-  //       const msgsRef = messagesRef.child(channel.id);
+  const addNotificationListener = channelId => {
+    const channelMessagesRef = messagesRef.child(channelId);
 
-  //       let initialMsgs = -1;
-  //       msgsRef.on('value', snapshot => {
+    channelMessagesRef.on('value', snapshot => {
+      if (
+        !notifications.hasOwnProperty(channelId) ||
+        (currentChannel && currentChannel.id === channelId)
+      ) {
+        notifications[channelId] = {
+          id: channelId,
+          total: snapshot.numChildren(),
+          count: 0
+        };
+      }
 
-  //         const totalMsgs = snapshot.numChildren();
-  //         if (initialMsgs < 0) initialMsgs = totalMsgs;
+      const { total } = notifications[channelId];
+      const curr = snapshot.numChildren();
+      const res = curr - total;
 
-  //         const total = totalMsgs - initialMsgs;
+      if (res > 0) {
+        notifications[channelId].count += res;
+        notifications[channelId].total = curr;
+      }
 
-  //         values[channel.id] = total;
-  //         console.log(values);
-  //         setNotifications({ ...values });
-  //       });
+      setNotifications({ ...notifications });
+    });
 
-  //       return [...acc, msgsRef];
-  //     }, []);
+    return channelMessagesRef;
+  };
 
-  //   return () => {
-  //     channelsMsgsRefs.forEach(ref => ref.off());
-  //   };
+  useEffect(() => {
+    if (!currentChannel && channels.length >= 1) {
+      setCurrentChannel(channels[0]);
+    } else if (currentChannel) {
+      channels.map(({ id }) => addNotificationListener(id));
+    }
 
-  //   // eslint-disable-next-line react-hooks/exhaustive-deps
-  // }, [currentChannel, channels]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentChannel, channels]);
 
-  const addListener = async () => {
+  const addListener = () => {
     const values = [];
     channelsRef.on('child_added', snapshot => {
       const val = snapshot.val();
 
       values.push(val);
       setChannels([...values]);
-
-      if (values.length === 1) setCurrentChannel(val);
     });
   };
 
@@ -83,19 +97,16 @@ const Channels = ({ currentUser, currentChannel, setCurrentChannel }) => {
 
   const addChannel = async () => {
     try {
-      const key = channelsRef.push().key;
+      const channelRef = await channelsRef.push();
       const newChannel = {
-        id: key,
+        id: channelRef.key,
         name: channelName,
         details: channelDetails,
-        createdBy: {
-          name: currentUser.displayName,
-          avatar: currentUser.photoUrl
-        },
+        createdBy: { ...currentUser },
         timestamp: firebase.database.ServerValue.TIMESTAMP
       };
 
-      await channelsRef.child(key).update(newChannel);
+      await channelRef.set(newChannel);
 
       closeModal();
     } catch (error) {
@@ -109,6 +120,12 @@ const Channels = ({ currentUser, currentChannel, setCurrentChannel }) => {
     if (!isFormValid()) return;
 
     addChannel();
+  };
+
+  const selectChannel = channel => {
+    setCurrentChannel(channel);
+
+    delete notifications[channel.id];
   };
 
   return (
@@ -130,10 +147,19 @@ const Channels = ({ currentUser, currentChannel, setCurrentChannel }) => {
             key={channel.id}
             name={channel.name}
             style={{ opacity: 0.7 }}
-            onClick={() => setCurrentChannel(channel)}
+            onClick={() => selectChannel(channel)}
             active={currentChannel && currentChannel.id === channel.id}
           >
-            # {channel.name}
+            # {channel.name}{' '}
+            {currentChannel &&
+              currentChannel.id !== channel.id &&
+              notifications[channel.id] &&
+              notifications[channel.id].count > 0 && (
+                <>
+                  {' '}
+                  <Label color="red">{notifications[channel.id].count}</Label>
+                </>
+              )}
           </Menu.Item>
         ))}
       </Menu.Menu>

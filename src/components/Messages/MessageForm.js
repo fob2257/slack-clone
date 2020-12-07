@@ -57,14 +57,14 @@ const MessageForm = ({
 
             await msgRef.child(key).update(newMessage);
 
-            setUploading(false);
-            setUploadTask(null);
+            setErrors([]);
           } catch (error) {
             console.error(error);
             setErrors([error]);
-            setUploading(false);
-            setUploadTask(null);
           }
+
+          setUploading(false);
+          setUploadTask(null);
         }
       );
     }
@@ -87,6 +87,7 @@ const MessageForm = ({
       await msgRef.child(key).update(newMessage);
 
       setMessage('');
+      setErrors([]);
     } catch (error) {
       console.error(error);
       setErrors([error]);
@@ -95,7 +96,7 @@ const MessageForm = ({
   };
 
   const getPath = () =>
-    privateChannel ? `chat/private-${currentChannel.id}` : 'chat/public';
+    privateChannel ? `chat/private-${currentChannel.id}/` : 'chat/public/';
 
   const uploadFile = (file, metadata) => {
     const [ext] = file.name.split('.').reverse();
@@ -115,11 +116,15 @@ const MessageForm = ({
         fluid
         name="message"
         style={{ marginBottom: '0.7em' }}
-        label={<Button icon="add" />}
+        className={errors.length > 0 ? 'error' : ''}
+        // label={<Button icon="add" />}
         labelPosition="left"
         placeholder="Write Your Message"
         value={message}
         onChange={e => setMessage(e.target.value)}
+        onKeyDown={({ key }) => {
+          if (key === 'Enter') sendMessage();
+        }}
       />
 
       <Button.Group widths="2" icon>

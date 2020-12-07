@@ -13,7 +13,12 @@ const MessagesHeader = ({
     <Header as="h2" fluid="true" floated="left" style={{ marginBottom: 0 }}>
       <span>
         {channelName}
-        {!privateChannel && <Icon name="star outline" color="black" />}
+        {!privateChannel && (
+          <>
+            {' '}
+            <Icon name="star outline" color="black" />
+          </>
+        )}
       </span>
       {!privateChannel && (
         <Header.Subheader>
