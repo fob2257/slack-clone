@@ -16,8 +16,8 @@ const App = ({ history, isLoading, setCurrentUser }) => {
     const unsubscribeFn = fireAuth.onAuthStateChanged(async user => {
       if (user) {
         const userData = await getUser(user);
-
         setCurrentUser(userData);
+
         return history.push('/');
       }
 
