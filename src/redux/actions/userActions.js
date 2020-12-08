@@ -4,3 +4,8 @@ export const setCurrentUser = user => ({
   type: constants.SET_CURRENT_USER,
   payload: user
 });
+
+export const setUserPosts = userPosts => ({
+  type: constants.SET_USER_POSTS,
+  payload: userPosts
+});

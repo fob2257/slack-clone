@@ -2,7 +2,8 @@ import constants from '../constants';
 
 const initialState = {
   currentUser: null,
-  isLoading: true
+  isLoading: true,
+  userPosts: {}
 };
 
 export default (state = initialState, { type, payload }) => {
@@ -12,6 +13,13 @@ export default (state = initialState, { type, payload }) => {
         ...state,
         currentUser: payload,
         isLoading: false
+      };
+    }
+
+    case constants.SET_USER_POSTS: {
+      return {
+        ...state,
+        userPosts: payload
       };
     }
 

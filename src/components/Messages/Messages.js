@@ -4,14 +4,21 @@ import { connect } from 'react-redux';
 
 import { fireDatabase } from '../../firebase/firebase.util';
 
+import { setUserPosts } from '../../redux/actions/userActions';
+
 import MessagesHeader from './MessagesHeader';
 import MessageForm from './MessageForm';
 import Message from './Message';
 
-const Messages = ({ currentUser, currentChannel, privateChannel }) => {
+const Messages = ({
+  currentUser,
+  currentChannel,
+  privateChannel,
+  setUserPosts
+}) => {
   const [messages, setMessages] = useState([]);
   const [progressBarVisible, setProgressBarVisible] = useState(false);
-  const [uniqueUsers, setUniqueUsers] = useState([]);
+  const [uniqueUsers, setUniqueUsers] = useState(0);
   const [searchTerm, setSearchTerm] = useState('');
   const [filteredMessages, setFilteredMessages] = useState([]);
   const [searchLoading, setSearchLoading] = useState(false);
@@ -50,6 +57,7 @@ const Messages = ({ currentUser, currentChannel, privateChannel }) => {
 
   const addListener = () => {
     const values = [];
+    const topPosters = {};
 
     setMessages(values);
 
@@ -60,8 +68,16 @@ const Messages = ({ currentUser, currentChannel, privateChannel }) => {
       setMessages([...values]);
 
       if (!privateChannel) {
-        const emails = [...new Set(values.map(m => m.user.email))];
-        setUniqueUsers(emails);
+        if (!topPosters[currentChannel.id]) {
+          topPosters[currentChannel.id] = {
+            [val.user.uid]: { ...val.user, count: 0 }
+          };
+        }
+
+        topPosters[currentChannel.id][val.user.uid].count += 1;
+
+        setUniqueUsers(Object.values(topPosters[currentChannel.id]).length);
+        setUserPosts(topPosters);
       }
     });
   };
@@ -136,7 +152,7 @@ const Messages = ({ currentUser, currentChannel, privateChannel }) => {
     <React.Fragment>
       <MessagesHeader
         channelName={`${privateChannel ? '@' : '#'}${currentChannel.name}`}
-        channelUsers={uniqueUsers.length}
+        channelUsers={uniqueUsers}
         searchTerm={searchTerm}
         handleSearchTerm={val => setSearchTerm(val)}
         searchLoading={searchLoading}
@@ -171,4 +187,8 @@ const mapStateToProps = ({ user, channel }) => ({
   privateChannel: channel.privateChannel
 });
 
-export default connect(mapStateToProps)(Messages);
+const mapDispatchToProps = dispatch => ({
+  setUserPosts: posts => dispatch(setUserPosts(posts))
+});
+
+export default connect(mapStateToProps, mapDispatchToProps)(Messages);

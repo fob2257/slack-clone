@@ -1,9 +1,18 @@
 import React, { useState } from 'react';
-import { Segment, Header, Accordion, Icon, Image } from 'semantic-ui-react';
+import {
+  Segment,
+  Header,
+  Accordion,
+  Icon,
+  Image,
+  List
+} from 'semantic-ui-react';
 import { connect } from 'react-redux';
 
-const MetaPanel = ({ currentChannel, privateChannel }) => {
+const MetaPanel = ({ userPosts, currentChannel, privateChannel }) => {
   const [activeIndex, setActiveIndex] = useState(0);
+
+  if (privateChannel || !currentChannel) return null;
 
   const changeIndex = (e, titleProps) => {
     setActiveIndex(titleProps.index);
@@ -11,12 +20,31 @@ const MetaPanel = ({ currentChannel, privateChannel }) => {
 
   const isActive = index => index === activeIndex;
 
-  if (privateChannel || !currentChannel) return null;
+  const topPosters = userPosts[currentChannel.id] || {};
+
+  const displayTopPosters = () => (
+    <List>
+      {Object.values(topPosters)
+        .sort((a, b) => b.count - a.count)
+        .map((obj, i) => (
+          <List.Item key={i}>
+            <Image src={obj.photoUrl} avatar />
+            <List.Content>
+              <List.Header>{obj.displayName}</List.Header>
+              <List.Description>
+                {obj.count} post{obj.count !== 1 ? 's' : ''}
+              </List.Description>
+            </List.Content>
+          </List.Item>
+        ))
+        .slice(0, 3)}
+    </List>
+  );
 
   return (
     <Segment>
       <Header as="h3" attached="top">
-        About # {<>{currentChannel.name}</>}
+        About # {currentChannel.name}
       </Header>
       <Accordion styled attached="true">
         {[
@@ -36,7 +64,7 @@ const MetaPanel = ({ currentChannel, privateChannel }) => {
                 Top Posters
               </>
             ),
-            content: 'posters'
+            content: displayTopPosters()
           },
           {
             title: (
@@ -74,9 +102,9 @@ const MetaPanel = ({ currentChannel, privateChannel }) => {
   );
 };
 
-const mapStateToProps = ({ channel: { currentChannel, privateChannel } }) => ({
-  currentChannel,
-  privateChannel
-});
+const mapStateToProps = ({
+  user: { userPosts },
+  channel: { currentChannel, privateChannel }
+}) => ({ userPosts, currentChannel, privateChannel });
 
 export default connect(mapStateToProps)(MetaPanel);
