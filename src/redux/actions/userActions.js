@@ -9,3 +9,8 @@ export const setUserPosts = userPosts => ({
   type: constants.SET_USER_POSTS,
   payload: userPosts
 });
+
+export const setUserColors = colors => ({
+  type: constants.SET_USER_COLORS,
+  payload: colors
+});

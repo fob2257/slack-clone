@@ -3,7 +3,8 @@ import constants from '../constants';
 const initialState = {
   currentUser: null,
   isLoading: true,
-  userPosts: {}
+  userPosts: {},
+  colors: {}
 };
 
 export default (state = initialState, { type, payload }) => {
@@ -20,6 +21,13 @@ export default (state = initialState, { type, payload }) => {
       return {
         ...state,
         userPosts: payload
+      };
+    }
+
+    case constants.SET_USER_COLORS: {
+      return {
+        ...state,
+        colors: payload
       };
     }
 
