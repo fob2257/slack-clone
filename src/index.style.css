@@ -4,7 +4,6 @@ body,
 .register {
   height: 100vh;
   background: #eee;
-  padding: 1em;
 }
 
 /* Message */
@@ -46,4 +45,25 @@ body,
 /* Side Panel */
 .menu {
   padding-bottom: 2em;
+}
+
+/* Color Panel */
+.color__container {
+  position: relative;
+  overflow: hidden;
+  width: 35px;
+  border-radius: 3px;
+
+  cursor: pointer;
+}
+
+.color__square {
+  width: 35px;
+  height: 35px;
+}
+
+.color__overlay {
+  width: 85px;
+  height: 35px;
+  transform: rotate(225deg);
 }

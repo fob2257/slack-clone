@@ -4,8 +4,8 @@ import { connect } from 'react-redux';
 
 import { signOut } from '../../firebase/firebase.util';
 
-const UserPanel = ({ currentUser }) => (
-  <Grid style={{ background: '#4c3c4c' }}>
+const UserPanel = ({ primaryColor, currentUser }) => (
+  <Grid style={{ background: primaryColor }}>
     <Grid.Column>
       <Grid.Row style={{ padding: '1.2em', margin: 0 }}>
         <Header as="h2" floated="left" inverted>

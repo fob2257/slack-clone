@@ -6,18 +6,18 @@ import Channels from './Channels';
 import DirectMessages from './DirectMessages';
 import Starred from './Starred';
 
-const SidePanel = () => (
+const SidePanel = ({ primaryColor }) => (
   <Menu
     size="large"
     fixed="left"
     vertical
     inverted
     style={{
-      background: '#4c3c4c',
+      background: primaryColor,
       fontSize: '1.2rem'
     }}
   >
-    <UserPanel />
+    <UserPanel primaryColor={primaryColor} />
     <Starred />
     <Channels />
     <DirectMessages />
