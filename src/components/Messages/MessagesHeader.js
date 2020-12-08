@@ -7,7 +7,9 @@ const MessagesHeader = ({
   searchTerm,
   handleSearchTerm,
   searchLoading,
-  privateChannel
+  privateChannel,
+  handleStar,
+  isChannelStarred
 }) => (
   <Segment clearing>
     <Header as="h2" fluid="true" floated="left" style={{ marginBottom: 0 }}>
@@ -16,7 +18,12 @@ const MessagesHeader = ({
         {!privateChannel && (
           <>
             {' '}
-            <Icon name="star outline" color="black" />
+            <Icon
+              name={isChannelStarred ? 'star' : 'star outline'}
+              color={isChannelStarred ? 'yellow' : 'black'}
+              style={{ cursor: 'pointer' }}
+              onClick={handleStar}
+            />
           </>
         )}
       </span>

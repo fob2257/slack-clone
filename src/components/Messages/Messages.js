@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Segment, Comment } from 'semantic-ui-react';
 import { connect } from 'react-redux';
 
@@ -17,7 +17,12 @@ const Messages = ({ currentUser, currentChannel, privateChannel }) => {
   const [searchLoading, setSearchLoading] = useState(false);
   const [messagesRef, setMessagesRef] = useState(fireDatabase.ref('messages'));
   const [channelMsgsRef, setChannelMsgsRef] = useState(null);
+  const [isChannelStarred, setIsChannelStarred] = useState(false);
   const messagesEndRef = useRef(null);
+
+  const starredChannelsRef = fireDatabase
+    .ref('users')
+    .child(`${currentUser.uid}/starredChannels`);
 
   useEffect(() => {
     const ref = privateChannel
@@ -43,7 +48,7 @@ const Messages = ({ currentUser, currentChannel, privateChannel }) => {
     };
   }, [messages]);
 
-  const addListener = async () => {
+  const addListener = () => {
     const values = [];
 
     setMessages(values);
@@ -61,11 +66,25 @@ const Messages = ({ currentUser, currentChannel, privateChannel }) => {
     });
   };
 
+  const isCurrentChannelStarred = useCallback(async () => {
+    let channelFound = false;
+    const snapshot = await starredChannelsRef.once('value');
+
+    if (!currentChannel) return channelFound;
+
+    if (snapshot.val()) {
+      channelFound = Object.keys(snapshot.val()).includes(currentChannel.id);
+    }
+
+    return channelFound;
+  }, [currentChannel, starredChannelsRef]);
+
   useEffect(() => {
-    // console.log(channelMsgsRef);
     if (!channelMsgsRef) return;
 
     addListener();
+
+    isCurrentChannelStarred().then(setIsChannelStarred);
 
     return () => {
       channelMsgsRef.off();
@@ -96,6 +115,20 @@ const Messages = ({ currentUser, currentChannel, privateChannel }) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchTerm]);
 
+  const handleStar = async () => {
+    const currentValue = !isChannelStarred;
+
+    setIsChannelStarred(currentValue);
+
+    if (currentValue) {
+      return await starredChannelsRef.update({
+        [currentChannel.id]: { ...currentChannel }
+      });
+    }
+
+    await starredChannelsRef.child(currentChannel.id).remove();
+  };
+
   const displayMessages = (msgs = []) =>
     msgs.map((message, i) => <Message {...{ key: i, message, currentUser }} />);
 
@@ -108,6 +141,8 @@ const Messages = ({ currentUser, currentChannel, privateChannel }) => {
         handleSearchTerm={val => setSearchTerm(val)}
         searchLoading={searchLoading}
         privateChannel={privateChannel}
+        handleStar={handleStar}
+        isChannelStarred={isChannelStarred}
       />
 
       <Segment>
