@@ -122,8 +122,14 @@ const Channels = ({ currentUser, currentChannel, setCurrentChannel }) => {
     addChannel();
   };
 
-  const selectChannel = channel => {
+  const selectChannel = async channel => {
     setCurrentChannel(channel);
+
+    await fireDatabase
+      .ref('typing')
+      .child(currentChannel.id)
+      .child(currentUser.uid)
+      .remove();
 
     delete notifications[channel.id];
   };

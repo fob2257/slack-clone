@@ -3,7 +3,10 @@ import { Segment, Button, Input } from 'semantic-ui-react';
 import { connect } from 'react-redux';
 import uuidv4 from 'uuid/v4';
 
-import firebase, { fireStorage } from '../../firebase/firebase.util';
+import firebase, {
+  fireStorage,
+  fireDatabase
+} from '../../firebase/firebase.util';
 
 import FileModal from './FileModal';
 import ProgressBar from './ProgressBar';
@@ -25,6 +28,14 @@ const MessageForm = ({
 
   const storageRef = fireStorage.ref();
   const msgRef = messagesRef.child(currentChannel.id);
+  const userTypingRef = fireDatabase
+    .ref('typing')
+    .child(currentChannel.id)
+    .child(currentUser.uid);
+
+  window.onbeforeunload = () => {
+    userTypingRef.remove();
+  };
 
   useEffect(() => {
     if (uploadTask) {
@@ -70,6 +81,21 @@ const MessageForm = ({
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [uploadTask]);
+
+  useEffect(() => {
+    (async () => {
+      const data = await userTypingRef.once('value');
+
+      if (!message.length) {
+        if (!!data.val()) {
+          await userTypingRef.remove();
+        }
+        return;
+      }
+
+      await userTypingRef.set(currentUser);
+    })();
+  }, [currentUser, message, userTypingRef]);
 
   const sendMessage = async () => {
     if (!!!message.length) return setErrors([{ message: 'Add a message' }]);
@@ -121,9 +147,11 @@ const MessageForm = ({
         labelPosition="left"
         placeholder="Write Your Message"
         value={message}
-        onChange={e => setMessage(e.target.value)}
-        onKeyDown={({ key }) => {
-          if (key === 'Enter') sendMessage();
+        onChange={e => {
+          setMessage(e.target.value);
+        }}
+        onKeyDown={e => {
+          if (e.key === 'Enter') return sendMessage();
         }}
       />
 

@@ -9,6 +9,7 @@ import { setUserPosts } from '../../redux/actions/userActions';
 import MessagesHeader from './MessagesHeader';
 import MessageForm from './MessageForm';
 import Message from './Message';
+import Typing from './Typing';
 
 const Messages = ({
   currentUser,
@@ -25,11 +26,14 @@ const Messages = ({
   const [messagesRef, setMessagesRef] = useState(fireDatabase.ref('messages'));
   const [channelMsgsRef, setChannelMsgsRef] = useState(null);
   const [isChannelStarred, setIsChannelStarred] = useState(false);
+  const [usersTyping, setUsersTyping] = useState([]);
   const messagesEndRef = useRef(null);
 
   const starredChannelsRef = fireDatabase
     .ref('users')
     .child(`${currentUser.uid}/starredChannels`);
+  const typingRef = fireDatabase.ref('typing');
+  const connectedRef = fireDatabase.ref('.info/connected');
 
   useEffect(() => {
     const ref = privateChannel
@@ -38,7 +42,10 @@ const Messages = ({
 
     setMessagesRef(ref);
 
-    if (currentChannel) setChannelMsgsRef(ref.child(currentChannel.id));
+    if (currentChannel) {
+      setChannelMsgsRef(ref.child(currentChannel.id));
+      setUsersTyping([]);
+    }
   }, [currentChannel, privateChannel]);
 
   useEffect(() => {
@@ -95,6 +102,41 @@ const Messages = ({
     return channelFound;
   }, [currentChannel, starredChannelsRef]);
 
+  const handleTyping = () => {
+    const ref = typingRef.child(currentChannel.id);
+
+    let users = [];
+    ref.on('child_added', snapshot => {
+      if (snapshot.key === currentUser.uid) return;
+
+      users.unshift(snapshot.val());
+
+      setUsersTyping([...users]);
+    });
+
+    ref.on('child_removed', snapshot => {
+      users = users.filter(user => user.uid !== snapshot.key);
+
+      setUsersTyping([...users]);
+    });
+
+    connectedRef.on('value', snapshot => {
+      if (snapshot.val()) {
+        typingRef
+          .child(currentChannel.id)
+          .child(currentUser.uid)
+          .onDisconnect()
+          .remove(error => {
+            if (error) {
+              console.error(error);
+            }
+          });
+      }
+    });
+
+    return ref;
+  };
+
   useEffect(() => {
     if (!channelMsgsRef) return;
 
@@ -102,7 +144,10 @@ const Messages = ({
 
     isCurrentChannelStarred().then(setIsChannelStarred);
 
+    const ref = handleTyping();
+
     return () => {
+      ref.off();
       channelMsgsRef.off();
     };
 
@@ -169,6 +214,12 @@ const Messages = ({
           {searchTerm.length
             ? displayMessages(filteredMessages)
             : displayMessages(messages)}
+          {usersTyping.map((user, i) => (
+            <div key={i} style={{ display: 'flex', alignItems: 'center' }}>
+              <span className="user__typing">{user.displayName} is typing</span>{' '}
+              <Typing />
+            </div>
+          ))}
           <div ref={messagesEndRef} />
         </Comment.Group>
       </Segment>
