@@ -37,6 +37,16 @@ const MessageForm = ({
     userTypingRef.remove();
   };
 
+  useEffect(
+    () => () => {
+      if (uploadTask) {
+        uploadTask.cancel();
+        setUploadTask(null);
+      }
+    },
+    [uploadTask]
+  );
+
   useEffect(() => {
     if (uploadTask) {
       uploadTask.on(
